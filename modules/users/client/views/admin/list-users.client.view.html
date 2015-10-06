@@ -1,0 +1,40 @@
+<section>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4">
+        <h1>Users</h1>
+      </div>
+      <div class="col-md-4" style="margin-top: 2em">
+        <input class="form-control col-md-4" type="text" ng-model="search" placeholder="Search" ng-change="figureOutItemsToDisplay()" />
+      </div>
+    </div>
+
+    <div class="row" style="margin-top: 2em">
+      <div class="list-group col-md-12">
+        <a ng-repeat="user in pagedItems | orderBy: 'lastName'" ui-sref="profile.view({userId: user._id})" class="list-group-item">
+          <div class="row">
+            <div class="col-md-1">
+                <img id="profile_picture" ng-src="{{user.profileImageURL}}" alt="{{user.firstName}}" class="message-picture"/>
+            </div>
+            <div class="col-md-4">
+              <h4 class="list-group-item-text" ng-bind="user.firstName"></h4>
+              <p class="list-group-item-text" ng-bind="user.username"></p>
+            </div>
+
+            <div class="col-md-1" style="margin-top: 2em">
+              <p class="list-group-item-text" ng-bind="user.roles"></p>
+            </div>
+
+            <div class="col-md-4 pull-right" style="margin-top: 2em">
+              <span>Date Created: </span><span class="list-group-item-text" ng-bind="user.created | date: mm/dd/yyyy"></span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div> 
+
+    <div class="row">
+      <pagination boundary-links="true" max-size="8" items-per-page="itemsPerPage" total-items="filterLength" ng-model="currentPage" ng-change="pageChanged()"></pagination>
+    </div>
+  </div>
+</section>

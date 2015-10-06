@@ -1,0 +1,47 @@
+<section>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4">
+        <h3>View Backups</h3>
+      </div>
+
+      <div class="col-md-12" style="margin-top: .5em">
+        <button type="button" ng-click="createBackup()" class="btn btn-success">
+            Create Backup
+        </button>
+      </div>
+
+      <div class="col-md-12" style="margin-top: 1em">
+        <ul class="list-group">
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-xs-4"><b>File Name</b></div>
+              <div class="col-xs-3"><b>Size</b></div>
+              <div class="col-xs-3"><b>Created</b></div>
+              <div class="col-xs-2">
+              </div>
+            </div>
+          </li>
+          <li class="list-group-item backup-listing" ng-repeat="backup in backups | orderBy: '-created'">
+            <div class="row">
+              <div class="col-xs-4" ng-bind="backup.name"></div>
+              <div class="col-xs-3"><span ng-bind="backup.size"></span>&nbsp;<span>bytes</span></div>
+              <div class="col-xs-3" ng-bind="backup.created | date: mm/dd/yyyy"></div>
+              <div class="col-xs-2">
+                <div class="btn-group pull-right" dropdown is-open="status.isopen">
+                  <button id="add" type="button" dropdown-toggle ng-disabled="disabled" class="btn advanced-search-btn btn-default">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                  </button>
+
+                  <ul class="dropdown-menu" role="menu" aria-labelledby="add">
+                    <li ng-click="downloadFile(backup)"><a href="#">Download File</a></li>
+                  </ul>
+               </div>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,24 @@
+<section ng-controller="MessagesController" ng-init="findOne()">
+  <div class="row">
+    <div class="container">
+      <div class="alert alert-danger text-danger" ng-show="error">
+        <b>Error: </b><p ng-bind="error"></p>
+      </div>
+    </div>
+    <div class="messages-block container margin-top-10">
+      <div class="col-md-12">
+        <form name="messageForm" class="form-horizontal" ng-submit="update(messageForm.$valid)" novalidate>
+          <fieldset>
+            <div class="form-group">
+              <label for="content">Edit Post Content : </label>
+              <textarea name="content" ng-model="message.content" id="content" class="form-control" cols="30" rows="10" placeholder="Content"></textarea>
+            </div>
+            <div class="form-group">
+              <input type="submit" value="Update" class="btn btn-default">
+            </div>
+          </fieldset>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>

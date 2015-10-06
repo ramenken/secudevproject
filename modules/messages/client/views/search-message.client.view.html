@@ -1,0 +1,138 @@
+<section ng-controller="SearchController">
+  <div class="container">
+    <div class="search-block row">
+      <div class="col-xs-12">
+        <div class="input-group">
+          <input name="search" id="search" class="search-field form-control" type="text" ng-model="fields.keyword" placeholder="Search"/>
+          <div class="input-group-btn">
+            <button type="button" class="btn btn-default" ng-click="searchPosts();">Search</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <accordion>
+        <accordion-group class="advanced-search-well" is-open="isCollapsed">
+          <accordion-heading >
+            <input type="checkbox" ng-change="check()" ng-model="status.isAdvanced" ng-click="$event.stopPropagation();" > &nbsp; Advanced Search
+            <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': isCollapsed, 'glyphicon-chevron-right': !isCollapsed}"></i>
+          </accordion-heading>
+          <div ng-repeat="field in fields.additionalFields">
+            <div class="col-md-11 filter-group" ng-include="field.template"></div>
+          </div>
+          <div class="col-md-1" ng-if="fields.additionalFields.length">
+            <div class="btn-group" dropdown is-open="status.isopen">
+              <button id="add" type="button" dropdown-toggle ng-disabled="disabled" class="btn advanced-search-btn btn-default">
+                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+              </button>
+
+              <ul class="dropdown-menu" role="menu" aria-labelledby="add">
+                <li ng-repeat="item in items" ng-click="addField(item.value)"><a>{{item.text}}</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="col-md-12" ng-if="!fields.additionalFields.length">
+            <div class="alert alert-warning text-center">
+              No filters yet!
+              <div class="btn-group" dropdown is-open="status.isopen">
+                <button id="add" type="button" dropdown-toggle ng-disabled="disabled" class="btn advanced-search-btn btn-default">
+                  <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                </button>
+
+                <ul class="dropdown-menu" role="menu" aria-labelledby="add">
+                  <li ng-repeat="item in items" ng-click="addField(item.value)"><a>{{item.text}}</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </accordion-group>
+      </accordion>
+    </div>
+
+
+    <div class="alert alert-danger text-center row" ng-if="!messages.length">
+      No results found!
+    </div>
+
+    <div class="messages-block row" ng-repeat="message in messages">
+      <div class="col-xs-2 col-md-1">
+        <img id="profile_picture" ui-sref="profile.view({userId: message.user._id})" ng-src="{{message.user.profileImageURL}}" alt="{{message.user.firstName}}" class="message-picture"/>
+      </div>
+      <div class="col-xs-10 col-md-11">
+          <strong>
+            <a id="firstName" href="#">
+              <span ui-sref="profile.view({userId: message.user._id})" ng-bind="message.user.firstName"></span>
+            </a>
+            (<span ui-sref="profile.view({userId: message.user._id})" ng-bind="message.user.username"></span>)
+          </strong>&nbsp;on&nbsp;
+          <p class="inline" ng-bind="message.created | date:'short'"></p>
+          <div class="pull-right">
+            <span type="button" class="label label-info" aria-label="Left Align" ui-sref="messages.view({messageId: message._id})" ng-show="user._id == message.user._id || authentication.user.roles[1] == 'admin'">Edit Post</span>
+          </div>
+          <hr>
+          <p id="content" ng-bind-html="message.content"></p>
+          <hr ng-show="message.editedDate != null">
+          <span ng-show="message.editedDate != null">Last Edited: </span><span ng-bind="message.editedDate | date:'mediumDate'"></span>
+      </div>
+    </div>
+  </div>
+  <!--
+    <div class="row">
+      <pagination boundary-links="true" max-size="8" items-per-page="itemsPerPage" total-items="filterLength" ng-model="currentPage" ng-change="pageChanged()"></pagination>
+    </div>
+  -->
+  </div>
+
+  <!-- Names Field Template -->
+  <script type="text/ng-template" id="field-text.html">
+    <div class="col-md-6">
+      <input name="{{field.name}}" class="form-control" type="text" placeholder="{{field.name}}" ng-model="field.values.name"/>
+    </div>
+
+    <div class="col-md-2 col-md-offset-4">
+      <!-- and or -->
+      <button id="{{field.name}}" type="button" class="btn btn-default" ng-change="check(field.values.type);" ng-model="field.values.type" btn-checkbox btn-checkbox-true="1" btn-checkbox-false="0">
+        <span ng-if="!field.values.type">OR</span>
+        <span ng-if="field.values.type">AND</span>
+      </button>
+      <!-- remove -->
+      <button type="button" class="btn advanced-search-btn btn-default" ng-click="removeField($index);">
+        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+      </button>
+    </div>
+  </script>
+
+  <!-- Dates Field Template -->
+  <script type="text/ng-template" id="field-date.html">
+    <div class="col-md-3" ng-if="field.values.range == 'between'">
+      <input name="{{field.name}}" class="form-control" type="date" ng-model="field.values.date_start" />
+    </div>
+
+    <div class="col-md-3">
+      <select id="{{field.name}}" name="{{field.name}}" class="btn form-control btn-default dropdown-toggle btn-block"
+      ng-options="item.value as item.text for item in date_items" ng-change="check()" ng-model="field.values.range">
+      </select>
+    </div>
+
+    <div class="col-md-3">
+      <input name="{{field.name}}" class="form-control" type="date" ng-model="field.values.date_end" />
+    </div>
+
+    <div class="col-md-2" ng-class="{'col-md-offset-1': field.values.range == 'between', 'col-md-offset-4': field.values.range != 'between'}">
+      <!-- and or -->
+      <button type="button" class="btn btn-default" ng-change="check(field.values.type);" ng-model="field.values.type" btn-checkbox btn-checkbox-true="1" btn-checkbox-false="0">
+        <span ng-if="!field.values.type">OR</span>
+        <span ng-if="field.values.type">AND</span>
+      </button>
+
+      <!-- remove -->
+      <button type="button" class="btn advanced-search-btn btn-default" ng-click="removeField($index);">
+        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+      </button>
+    </div>
+  </script>
+
+</section>

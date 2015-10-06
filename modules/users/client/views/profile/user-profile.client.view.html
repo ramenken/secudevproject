@@ -1,0 +1,57 @@
+<section ng-controller="ProfileController" ng-init="findOne()">
+
+  <div class="wrapper" style="background-color: black">
+    <div class="header-block">
+      <div class="header-name">
+        <img ng-src="{{profile.profileImageURL}}" alt="{{profile.firstName}}" class="mini-profile-picture" style="margin-top: 20px;">
+        <h3>
+          <span ng-bind="profile.firstName"></span>
+          <span ng-bind="profile.lastName"></span>
+          (&nbsp;<span ng-bind="profile.username"></span>&nbsp;)
+        </h3>
+        <p ng-bind="profile.aboutme"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-offset-4 col-md-4 aboutme-block">
+    <ul class="ssul vp">
+          <li class="ssa form-group">
+            <p class="va">&nbsp;
+              <span class="glyphicon glyphicon-user" aria-hidden="true"></span>&nbsp;
+              I am <span ng-bind="profile.salutation"></span>
+              <span ng-bind="profile.firstName"></span>
+              <span ng-bind="profile.lastName"></span>
+            </p>
+          </li>
+          <li class="ssb form-group">
+            <p class="va">&nbsp;
+              <span class="glyphicon glyphicon-heart" aria-hidden="true"></span>&nbsp;
+              Born as <span ng-bind="profile.gender" style="text-transform: capitalize;"></span>
+            </p>
+          </li>
+          <li class="ssb form-group">
+            <p class="va">&nbsp;
+              <span class="glyphicon glyphicon-gift" aria-hidden="true"></span>&nbsp;
+              My birthday is on <span ng-bind="profile.birthDate | date: mm/dd/yyyy"></span>
+            </p>
+          </li>
+          <li class="ssb form-group">
+            <p class="va">&nbsp;
+              <span class="glyphicon glyphicon-tree-deciduous" aria-hidden="true"></span>&nbsp;
+              Joined last <span ng-bind="profile.created | date: mm/dd/yyyy"></span>
+            </p>
+          </li>
+          <div class="ssb form-group">
+            <p class="va">&nbsp;
+              <span class="glyphicon glyphicon-tree-deciduous" aria-hidden="true"></span>&nbsp;
+              Description: <span ng-bind="profile.aboutme"></span>
+            </p>
+          </div>
+          <li class="ssz">
+          </li>
+      </div>
+    </ul>
+  </div>
+</section>

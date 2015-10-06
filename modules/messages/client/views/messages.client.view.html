@@ -1,0 +1,140 @@
+<section ng-controller="MessagesController" ng-init="find()">
+  <div class="container">
+    <div class="col-md-3">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="mini-profile">
+            <div class="mini-profile-header"></div>
+              <a ui-sref="profile.view({userId: currentUser._id})">
+                <div class="mini-profile-picture" style='background-image: url("{{currentUser.profileImageURL}}");'>
+                </div>
+              </a>
+              <h5>
+                <p class="name-wrap">
+                  <span ng-bind="currentUser.salutation"></span>
+                  <span ng-bind="currentUser.firstName"></span>
+                  <span ng-bind="currentUser.lastName"></span>
+                </p>
+
+                <small>(&nbsp;<a ui-sref="profile.view({userId: currentUser._id})"><span ng-bind="currentUser.username"></span></a>&nbsp;)</small>
+
+              </h5>
+                <p class="name-wrap">{{currentUser.aboutme}}</p>
+          </div>
+        </div>
+        <div class="col-md-12 aboutme-block2">
+          <ul class="ssul vp">
+              <li class="ssa form-group">
+                <p class="va">&nbsp;
+                  <span class="glyphicon glyphicon-heart" aria-hidden="true"></span>&nbsp;
+                  Gender: <span ng-bind="currentUser.gender" style="text-transform: capitalize;"></span>
+                </p>
+              </li>
+              <li class="ssb form-group">
+                <p class="va">&nbsp;
+                  <span class="glyphicon glyphicon-gift" aria-hidden="true"></span>&nbsp;
+                  Birthday: <span ng-bind="currentUser.birthDate | date: mm/dd/yyyy"></span>
+                </p>
+              </li>
+              <li class="ssb form-group">
+                <p class="va">&nbsp;
+                  <span class="glyphicon glyphicon-tree-deciduous" aria-hidden="true"></span>&nbsp;
+                  Date Joined: <span ng-bind="currentUser.created | date: mm/dd/yyyy"></span>
+                </p>
+              </li>
+              <li class="ssz">
+              </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-9">
+      <div id='main'>
+        <div class="row">
+          <div class="alert alert-danger text-danger error-block" ng-show="error">
+            <b>Error: </b><p ng-bind="error"></p>
+          </div>
+        </div>
+        <div class="row create-new-message-block">
+          <div class="col-xs-12">
+            <form name="messageForm" ng-submit="create(messageForm.$valid)" novalidate>
+              <fieldset>
+                <div class="flex-group">
+                  <textarea id="content" name="content" class="content form-control" placeholder="Enter your new message here. Accepts styling!" rows="5" ng-model="content" content-styling></textarea>
+                  <div class="c-group">
+                    <button popover-template="imagePopover.templateUrl" popover-is-open="imagePopover.opened" popover-placement="left" type="button" class="btn ca btn-default" aria-label="Left Align">
+                      <span class="glyphicon glyphicon-picture" aria-hidden="true"></span>
+                    </button>
+                    <button popover-template="stylePopover.templateUrl" popover-is-open="stylePopover.opened" popover-placement="left" type="button" class="btn cb btn-default" aria-label="Left Align">
+                      <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>
+                    </button>
+                    <button type="submit" class="btn cc btn-default" aria-label="Left Align">
+                      <span class="glyphicon glyphicon-check" aria-hidden="true"></span>
+                    </button>
+                  </div>
+                </div>
+              </fieldset>
+            </form>
+          </div>
+        </div>
+        <pagination ng-change="pageChanged()" total-items="totalItems" ng-model="currentPage" max-size="maxSize" boundary-links="true" direction-links="false" class="text-center"></pagination>
+
+        <div class="alert alert-warning text-center" ng-if="messages.$resolved && !messages.length">
+          No messages yet, why don't you <a ui-sref="messages.create">create one</a>?
+        </div>
+
+        <!-- ui-sref="messages.view({messageId: message._id})" -->
+        <div class="messages-block row" ng-repeat="message in messages">
+            <div class="col-xs-2 col-md-1">
+              <img id="profile_picture" ui-sref="profile.view({userId: message.user._id})" ng-src="{{message.user.profileImageURL}}" alt="{{message.user.firstName}}" class="message-picture"/>
+            </div>
+            <div class="col-xs-10 col-md-11">
+                <!--
+                <small> Date Joined: </small>
+                <span id="date_joined"><small ng-bind="message.user.created | date:'mediumDate'"></small></span>
+                -->
+                <strong>
+                  <a class="firstName" href="#">
+                    <span ui-sref="profile.view({userId: message.user._id})" ng-bind="message.user.firstName"></span>
+                  </a>
+                  (<span ui-sref="profile.view({userId: message.user._id})" ng-bind="message.user.username"></span>)
+                </strong>&nbsp;on&nbsp;
+                <p class="inline" ng-bind="message.created | date:'short'"></p>
+                <div class="pull-right">
+                  <span type="button" class="label label-info" aria-label="Left Align" ui-sref="messages.view({messageId: message._id})" ng-show="authentication.user._id == message.user._id || authentication.user.roles[1] == 'admin'">Edit Post</span>
+                </div>
+                <hr>
+                <p ng-bind-html="message.content" class="post-content"></p>
+                <hr ng-show="message.editedDate != null">
+                <span ng-show="message.editedDate != null">Last Edited: </span><span ng-bind="message.editedDate | date:'mediumDate'"></span>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popover templates -->
+  <script type="text/ng-template" id="imagePopoverTemplate.html">
+      <div class="flex-group">
+        <input type="text" ng-model="imagePopover.imageUrl" placeholder="Enter URL here." class="form-control" style="display: inline;">
+        <button type="button" class="btn btn-default" aria-label="Left Align" ng-click="addUrl();">
+          Insert
+        </button>
+      </div>
+  </script>
+
+  <script type="text/ng-template" id="stylePopoverTemplate.html">
+      <div class="flex-group">
+        <button type="button" class="btn btn-default" aria-label="Left Align" ng-click="addStyle('<b>');">
+          <b>b</b>
+        </button>
+        <button type="button" class="btn btn-default" aria-label="Left Align" ng-click="addStyle('<i>');">
+          <i>i</i>
+        </button>
+        <button type="button" class="btn btn-default" aria-label="Left Align" ng-click="addStyle('<u>');">
+          <u>u</u>
+        </button>
+      </div>
+  </script>
+  <!-- end -->
+</section>

@@ -1,0 +1,30 @@
+<section ng-controller="ChangeProfilePictureController">
+  <ul class="ssul">
+    <form class="signin">
+      <fieldset>
+        <li>
+          <div class="alert alert-success text-success" ng-show="success">
+            <b>Profile changes have been saved.</b>
+          </div>
+          <div class="alert alert-danger text-danger" ng-show="error">
+            <b>Error: </b><p ng-bind="error"></p>
+          </div>
+        </li>
+        <li class="ssa text-center form-group" ng-hide="uploader.queue.length">
+          <span class="btn btn-theme-1 btn-file">
+              Select Image <input type="file" nv-file-select uploader="uploader">
+          </span>
+        </li>
+        <li class="ssa text-center form-group" ng-show="uploader.queue.length">
+          <button class="btn btn-primary btn-theme-1" ng-click="uploadProfilePicture();">Upload</button>
+          <button class="btn btn-default btn-theme-2" ng-click="cancelUpload();">Cancel</button>
+        </li>
+        <li class="ssb form-group text-center">
+          <img ng-src="{{imageURL}}" alt="{{user.firstName}}" class="img-thumbnail user-profile-picture">
+        </li>
+        <li class="ssz">
+        </li>
+      </fieldset>
+    </form>
+  </ul>
+</section>
