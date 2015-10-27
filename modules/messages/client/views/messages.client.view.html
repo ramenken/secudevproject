@@ -77,7 +77,10 @@
             </form>
           </div>
         </div>
-        <pagination ng-change="pageChanged()" total-items="totalItems" ng-model="currentPage" max-size="maxSize" boundary-links="true" direction-links="false" class="text-center"></pagination>
+        
+        <div class="row">
+          <pagination id="msg-pagination" name="msg-pagination" ng-change="pageChanged()" total-items="totalItems" ng-model="currentPage" max-size="maxSize" boundary-links="true" direction-links="false" class="text-center pull-right"></pagination>
+        </div>
 
         <div class="alert alert-warning text-center" ng-if="messages.$resolved && !messages.length">
           No messages yet, why don't you <a ui-sref="messages.create">create one</a>?
@@ -86,7 +89,7 @@
         <!-- ui-sref="messages.view({messageId: message._id})" -->
         <div class="messages-block row" ng-repeat="message in messages">
             <div class="col-xs-2 col-md-1">
-              <img id="profile_picture" ui-sref="profile.view({userId: message.user._id})" ng-src="{{message.user.profileImageURL}}" alt="{{message.user.firstName}}" class="message-picture"/>
+              <div ui-sref="profile.view({userId: message.user._id})" style='background-image: url("{{message.user.profileImageURL}}");' alt="{{message.user.firstName}}" class="message-picture"> </div>
             </div>
             <div class="col-xs-10 col-md-11">
                 <!--

@@ -1,0 +1,44 @@
+<section ng-controller="StoreController" ng-init="find()">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1>View Carts</h1>
+        <hr class="divider">
+      </div>
+      
+      <div class="col-md-3" style="margin-top: .5em">
+        <input type="date" name="date-range" class="form-control"/>
+      </div>
+      <div class="col-md-1" style="margin-top: .5em">
+        <button type="button" ng-click="createBackup()" class="btn btn-primary">
+            <span class="glyphicon glyphicon-calendar" aria-hidden="true"></span>&nbsp;Filter Carts
+        </button>
+      </div>
+
+      <div class="col-md-12" style="margin-top: 1em">
+        <ul class="list-group">
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-xs-2"><b>Username</b></div>
+              <div class="col-xs-3"><b>Name</b></div>
+              <div class="col-xs-3"><b>Amount</b></div>
+              <div class="col-xs-2"><b>Items</b></div>
+              <div class="col-xs-1"><b>Status</b></div>
+            </div>
+          </li>
+          <!--ng-repeat="backup in backups | orderBy: '-created'"-->
+          <li class="list-group-item">
+            <div class="row cart-item-row">
+              <div class="col-xs-2">kenasanion</div>
+              <div class="col-xs-3">Ken Asanion</div>
+              <div class="col-xs-3"><span>$</span><span>0.00</span></div>
+              <div class="col-xs-2"><a href="#"><span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>&nbsp;View Items</a></div>
+              <div class="col-xs-1"><span>Cancelled</span></div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>

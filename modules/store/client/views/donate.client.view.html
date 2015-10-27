@@ -1,0 +1,86 @@
+<section ng-controller="StoreController">
+  	<div class="wrapper2">
+    	<div class="donate-block">
+		    <p class="donate-header-text">We accept donations.</p>
+			<p>A simple donation will help us improve our work!<br>Start by doing a quick pay or choose from one of the donation packs below.</p>
+    	</div>
+ 	</div>
+
+    <hr class="divider">
+
+    <div class="container text-center">
+	    <div class="col-xs-6">
+	    	<h3>Quick Pay</h3>
+	    	<hr>
+	    	<b>Custom Denomination</b>
+	    	<form action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post" target="_top">
+				<input type="hidden" name="cmd" value="_s-xclick">
+				<input type="hidden" name="hosted_button_id" value="FQ7EPLS37AC3A">
+				<input type="image" src="https://www.sandbox.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+				<img alt="" border="0" src="https://www.sandbox.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
+			</form>
+
+			<hr>
+			<div class="row">
+				<div class="col-xs-4">
+		    		<b>Donate $5</b>
+		    		<form action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post" target="_top">
+						<input type="hidden" name="cmd" value="_s-xclick">
+						<input type="hidden" name="hosted_button_id" value="LDGJTWMUTKTPN">
+						<input type="image" src="https://www.sandbox.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+						<img alt="" border="0" src="https://www.sandbox.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
+					</form>
+				</div>
+
+				<div class="col-xs-4">
+					<b>Donate $10</b>
+					<form action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post" target="_top">
+						<input type="hidden" name="cmd" value="_s-xclick">
+						<input type="hidden" name="hosted_button_id" value="DKLATBCYMVA88">
+						<input type="image" src="https://www.sandbox.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+						<img alt="" border="0" src="https://www.sandbox.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
+					</form>
+				</div>
+
+				<div class="col-xs-4">
+					<b>Donate $20</b>
+					<form action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post" target="_top">
+						<input type="hidden" name="cmd" value="_s-xclick">
+						<input type="hidden" name="hosted_button_id" value="4CTKEMVL33ZA6">
+						<input type="image" src="https://www.sandbox.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+						<img alt="" border="0" src="https://www.sandbox.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
+					</form>
+				</div>
+			</div>
+	    	<!--
+	    	<div class="col-xs-8 col-xs-offset-2">
+	    		<div class="input-group">
+		    		<span class="input-group-addon" id="currency-addon">$</span>
+		    		<input name="quickdonate" id="quickdonate" class="donate-field form-control" type="text" ng-model="fields.keyword" placeholder="Enter denomination amount in $" aria-describedby="currency-addon"/>
+	    		</div>
+	    		<button type="button" ng-click="createBackup()" class="btn btn-success pull-right donate-btn">
+			      Donate Now
+		      	</button>
+	    	</div>-->
+	    </div>
+
+	    <div class="col-xs-6">
+	    	<h3>Donation Packs</h3><br>
+	    	<div class="col-xs-12">
+		    	<div class="item-pane-2">
+			      	<select id="gender" name="gender" class="gender btn form-control btn-default dropdown-toggle btn-block"
+	      			ng-options="option.value as option.name for option in gender.names" ng-model="gender.name" required>
+	      			</select>
+	      			<hr>
+	      			<div class="input-group">
+			    		<span class="input-group-addon" id="currency-addon">Qty.</span>
+				      	<input name="quantity" id="quantity" class="donate-field form-control" type="text" ng-model="fields.keyword" placeholder="How many?"/>
+			      	</div>
+			      	<button type="button" ng-click="createBackup()" class="btn btn-success donate-btn">
+				      <span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>&nbsp;Add to Cart
+			      	</button>
+			    </div>
+		    </div>
+	    </div>
+    </div>
+</section>

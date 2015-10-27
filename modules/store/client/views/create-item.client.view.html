@@ -1,0 +1,60 @@
+<section ng-controller="StoreController">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1>Add Item</h1>
+        <hr>
+      </div>
+
+      <form name="itemForm" class="col-xs-12" ng-submit="addItem(itemForm.$valid)" novalidate>
+        <fieldset>
+
+      <div class="col-md-4">
+        <div class="col-xs-12">
+            Select Image <input type="file" nv-file-select uploader="uploader">
+
+            <div class="image-pane"> 
+              <div class="row">
+                <p class="col-xs-5 badge-header badge-text">Image Preview</p>
+              </div>
+              
+              <div class="add-image-preview" style="background-image: url('{{imageURL}}');">
+              </div>
+            </div>
+        </div>
+      </div>
+
+      <div class="col-md-8">
+        <div class="col-xs-12">
+          <div class="input-group">
+            <span class="input-group-addon" id="name-addon">Item Name</span>
+            <input type="text" class="form-control" aria-describedby="name-addon" ng-model="item.name"/>
+          </div>
+        </div>
+
+        <br/><br/>
+
+        <div class="col-xs-12">
+          <div class="input-group">
+            <span class="input-group-addon" id="qty-addon">$</span>
+            <input type="text" class="form-control" aria-describedby="qty-addon" ng-model="item.price"/>
+          </div>
+        </div>
+
+        <div class="col-xs-12">
+          <br/>
+          <textarea id="description" name="description" class="form-control item-desc-textarea" rows="5" placeholder="Enter item description here" required ng-model="item.description"></textarea>
+        </div>
+
+        <div class="col-xs-12">
+          <button type="submit" class="btn btn-success add-item-btn">Add Item</button>
+        </div>
+
+
+        </fieldset>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</section>

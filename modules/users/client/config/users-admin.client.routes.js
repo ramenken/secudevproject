@@ -4,11 +4,6 @@
 angular.module('users.admin.routes').config(['$stateProvider',
   function ($stateProvider) {
     $stateProvider
-      .state('admin.users', {
-        url: '/users',
-        templateUrl: 'modules/users/client/views/admin/list-users.client.view.html',
-        controller: 'UserListController'
-      })
       .state('admin.create', {
         url: '/create',
         templateUrl: 'modules/users/client/views/admin/admin-signup.client.view.html',
@@ -18,6 +13,11 @@ angular.module('users.admin.routes').config(['$stateProvider',
         url: '/backup',
         templateUrl: 'modules/users/client/views/admin/admin-backup.client.view.html',
         controller: 'BackUpController'
+      })
+      .state('admin.carts', {
+        url: '/carts',
+        templateUrl: 'modules/users/client/views/admin/admin-view-carts.client.view.html',
+        controller: 'CartController'
       });/*
       .state('admin.user', {
         url: '/users/:userId',

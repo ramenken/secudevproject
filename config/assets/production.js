@@ -19,7 +19,9 @@ module.exports = {
         'public/lib/angular-sanitize/angular-sanitize.min.js',
         'public/lib/jquery/dist/jquery.min.js',
         'public/lib/angular-route/angular-route.min.js',
-        'public/lib/angular-loading-bar/build/loading-bar.min.js'
+        'public/lib/angular-loading-bar/build/loading-bar.min.js',
+        'public/lib/ng-file-upload/ng-file-upload.js',
+        'public/lib/ng-file-upload-shim/ng-file-upload-shim.js'
       ]
     },
     css: 'public/dist/application.min.css',

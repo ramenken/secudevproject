@@ -99,7 +99,7 @@ angular.module('messages').controller('MessagesController', ['$scope', '$statePa
     // Find a list of Messages
     $scope.find = function () {
       $scope.currentUser = $scope.getUser();
-      $scope.messages = $scope.loadMessages();
+      $scope.loadMessages();
     };
 
     $scope.getUser = function() {
