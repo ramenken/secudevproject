@@ -23,7 +23,7 @@
       </div>
 
     	<h3 ng-bind="preview.name"></h3>
-    	<span class="item-price">$<span ng-bind="preview.price"></span></span>
+    	<span class="item-price">P<span ng-bind="preview.price"></span></span>
 
     	<p>Description:</p><p>
     	 <span ng-bind="preview.description"></span>
@@ -59,7 +59,7 @@
     		      <div class="item-thumbnail-1" style='background-image: url("{{item.itemImageURL}}");'></div>
     		      <div class="caption text-center">
     		      	<h5 ng-bind="item.name"></h5>
-    		        <span class="item-price">$<span ng-bind="item.price"></span></span>
+    		        <span class="item-price">P<span ng-bind="item.price | number: 2"></span></span>
     		      </div>
     		    </div>
     		  </div>

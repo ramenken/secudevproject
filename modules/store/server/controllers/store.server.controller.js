@@ -30,6 +30,14 @@ var verifyUser = function(user1, user2) {
 exports.create = function (req, res) {
   var item = new Item(req.body);
   console.log(item);
+
+  if(item.price <= 0) {
+    return res.status(400).send({message: 'Price cannot be 0 and below.'});
+  }
+
+  if(req.files.file.name === null) {
+    return res.status(400).send({message: 'Blank image detected.'});
+  }
   
   fs.writeFile('./modules/store/client/img/items/' + req.files.file.name, req.files.file.buffer, function (uploadError) {
     if (uploadError) {
@@ -38,6 +46,7 @@ exports.create = function (req, res) {
       });
     } else {
       item.itemImageURL = 'modules/store/client/img/items/' + req.files.file.name;
+      item.price = parseFloat(Math.round(item.price * 100) / 100).toFixed(2);
 
       item.save(function (err) {
         if (err) {
@@ -48,6 +57,24 @@ exports.create = function (req, res) {
           res.json(item);
         }
       });
+    }
+  });
+};
+
+
+/**
+ * Delete an item
+ */
+exports.delete = function (req, res) {
+  var item = req.item;
+
+  item.remove(function (err) {
+    if (err) {
+      return res.status(400).send({
+        message: errorHandler.getErrorMessage(err)
+      });
+    } else {
+      res.json(item);
     }
   });
 };
@@ -87,20 +114,37 @@ exports.resetCart = function(req, res) {
 
 };
 
-var isItemExists = function(userId, itemId) {       
+var computeItems = function(userId, itemId, newItemPrice, callback) {
+  
+  var promise = Cart.findOne({'user': userId, 'status': '0'}).exec(); //Look for the current active cart (Not paid)
+
+  promise.then(function(cart){
+    var total = newItemPrice;
+    console.log('Plus:' + total);
+    for(var i = 0, n = cart.items.length; i < n; i++) {
+      total += cart.items[i].totalPrice;
+      console.log(' + ' + cart.items[i].totalPrice + ' = ' + total);
+    }
+    callback(total);
+  });
+};
+
+var isItemExists = function(userId, itemName, callback) {       
   return Cart.findOne({'user': userId, 'status': '0'}) //Look for the current active cart (Not paid)
     .exec(function (err, cart) {
       if (err)
         return false;
       else {
         var index = -1;
+        var quantity = -1;
         for(var i = 0, n = cart.items.length; i < n; i++) {
-          if (cart.items[i]._itemId === itemId) {
+          if (cart.items[i].name === itemName) {
               index = i;
+              quantity = cart.items[i].quantity;
               break;
           }
         }
-        return index;
+        callback(userId, itemName, index, quantity);
       }
     });
 };
@@ -112,34 +156,66 @@ exports.addToCart = function(req, res) {
   delete req.body.displayedUser;
 
   //TODO Further Error Checking
+  if(req.body._itemId === null) {
+    res.status(400).send({message: 'No item selected.'});
+  }
 
-  if(isItemExists(req.user._id, req.body._itemId)) {
-    console.log('Item exists! Will merge with the similar item.');
-  } else {
-    console.log('Item does not exist. Creating another row for it.');
+  if(req.body.quantity <= 0) {
+    res.status(400).send({message: 'Invalid item quantity.'});
   }
 
   var totalPrice = req.body.quantity * req.body.price;
+  console.log('Total Price: ' + totalPrice);
+  var totalAmount = computeItems(req.user._id, req.body._itemId, totalPrice, 
+    function(totalAmount){
+      isItemExists(req.user._id, req.body.name, function(userId, itemName, index, quantity){
+        console.log(index);
 
-  Cart.update({'user': req.user._id, 'status': '0'}, {$push: {
-      items: {
-        '_itemId': req.body._itemId,
-        'name': req.body.name,
-        'itemImageURL': req.body.itemImageURL,
-        'price': req.body.price,
-        'quantity': req.body.quantity,
-        'totalPrice': totalPrice
-      }
-    }
-  }).exec(function (err, item) {
-    if (err) {
-      return res.status(400).send({
-        message: errorHandler.getErrorMessage(err)
+        if (index >= 0) {
+          console.log('Item exists! Will merge with the similar item.');
+
+          var newQty = quantity + req.body.quantity;
+          var newTotalPrice = newQty * req.body.price;
+          Cart.update({'items.name': itemName }, {'$set': {
+            'items.$.quantity': newQty,
+            'items.$.totalPrice': newTotalPrice,
+            'totalAmount': totalAmount
+          }}).exec(function (err, item) {
+            if (err) {
+              return res.status(400).send({
+                message: errorHandler.getErrorMessage(err)
+              });
+            } else {
+              res.json(item);
+            }
+          });
+        } else {
+          console.log('Item does not exist. Creating another row for it.');
+
+          Cart.update({'user': req.user._id, 'status': '0'}, {
+            $push: {
+              'items': {
+                '_itemId': req.body._itemId,
+                'name': req.body.name,
+                'itemImageURL': req.body.itemImageURL,
+                'price': req.body.price,
+                'quantity': req.body.quantity,
+                'totalPrice': totalPrice
+              }
+            }, $set: { 
+              'totalAmount': totalAmount }
+          }).exec(function (err, item) {
+            if (err) {
+              return res.status(400).send({
+                message: errorHandler.getErrorMessage(err)
+              });
+            } else {
+              res.json(item);
+            }
+          });
+        }
       });
-    } else {
-      res.json(item);
-    }
-  });
+    });
 };
 
 exports.viewCart = function(req, res) {
@@ -258,23 +334,6 @@ exports.update = function (req, res) {
   item.content = req.body.content;
 
   item.save(function (err) {
-    if (err) {
-      return res.status(400).send({
-        message: errorHandler.getErrorMessage(err)
-      });
-    } else {
-      res.json(item);
-    }
-  });
-};
-
-/**
- * Delete an item
- */
-exports.delete = function (req, res) {
-  var item = req.item;
-
-  item.remove(function (err) {
     if (err) {
       return res.status(400).send({
         message: errorHandler.getErrorMessage(err)
