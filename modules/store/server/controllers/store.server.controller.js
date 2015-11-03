@@ -471,8 +471,8 @@ exports.checkout = function(req, res) {
   };
   
   console.log('Payment!');
-  paypalPayment.redirect_urls.return_url = 'http://localhost:3000/checkout/confirm';
-  paypalPayment.redirect_urls.cancel_url = 'http://localhost:3000/checkout/cancel';
+  paypalPayment.redirect_urls.return_url = 'https://159.203.83.226/checkout/confirm';
+  paypalPayment.redirect_urls.cancel_url = 'https://159.203.83.226/checkout/cancel';
   paypal.payment.create(paypalPayment, {}, function (err, response) { 
     if (err) {
       return res.send({'message': 'There seems to be an error in the payment API request. Please try again.',
