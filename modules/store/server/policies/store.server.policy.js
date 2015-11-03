@@ -22,28 +22,55 @@ exports.invokeRolesPolicies = function () {
       permissions: '*'
     }, {
       resources: '/api/store/additem',
-      permissions: ['get', 'post']
+      permissions: '*'
+    }, {
+      resources: '/api/store/getpacks',
+      permissions: '*'
+    }, {
+      resources: '/api/store/updatepicture',
+      permissions: '*'
     }]
   }, {
     roles: ['user'],
     allows: [{
+      resources: '/api/store/items',
+      permissions: ['get']
+    }, {
       resources: '/api/store/item',
       permissions: ['get']
     }, {
-      resources: '/api/store/cart/newcart',
-      permissions: ['get', 'post']
+      resources: '/api/store/getpacks',
+      permissions: ['get']
     }, {
       resources: '/api/store/item/:itemId',
       permissions: ['get']
     }, {
-      resources: '/api/store/cart/checkout',
-      permissions: ['get']
+      resources: '/api/cart/newcart',
+      permissions: ['get', 'post']
     }, {
-      resources: '/api/store/cart/confirmcheckout',
+      resources: '/api/cart/checkout',
       permissions: ['post']
     }, {
-      resources: '/api/store/cart',
+      resources: '/api/cart/confirmcheckout',
+      permissions: ['post']
+    }, {
+      resources: '/api/cart/cancelcheckout',
+      permissions: ['post']
+    }, {
+      resources: '/api/cart',
       permissions: ['get', 'post']
+    }, {
+      resources: '/api/cart/countitems',
+      permissions: ['get']
+    }, {
+      resources: '/api/cart/deleteitem',
+      permissions: ['post']
+    }, {
+      resources: '/api/cart/updateitem',
+      permissions: ['post']
+    }, {
+      resources: '/api/cart/updatequantity',
+      permissions: ['post']
     }]
   }]);
 };
@@ -53,11 +80,6 @@ exports.invokeRolesPolicies = function () {
  */
 exports.isAllowed = function (req, res, next) {
   var roles = (req.user) ? req.user.roles : ['guest'];
-
-  // If an item is being processed and the current user created it then allow any manipulation
-  if (req.item && req.user && req.item.user.id === req.user.id) {
-    return next();
-  }
 
   // Check for user roles
   acl.areAnyRolesAllowed(roles, req.route.path, req.method.toLowerCase(), function (err, isAllowed) {

@@ -1,0 +1,45 @@
+<section ng-controller="StoreController" ng-init="findCartItems()">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 callout">
+        <h4 class="callout-title">Confirm Transaction</h4>
+        <p>Make sure you items are correct. You cannot cancel it once you confirm.</p>
+      </div>
+
+      <div class="col-md-12" style="margin-top: 1em">
+        <ul class="list-group">
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-xs-4"><b>Item Name</b></div>
+              <div class="col-xs-3"><b>Item Price</b></div>
+              <div class="col-xs-2"><b>Quantity</b></div>
+              <div class="col-xs-3"><b>Price (in Quantity)</b></div>
+            </div>
+          </li>
+
+          <li class="list-group-item" ng-repeat="item in cart.items">
+            <div class="row">
+              <div class="col-xs-4"><span ng-bind="item.item.name"></span></div>
+              <div class="col-xs-3"><span>PHP&nbsp;</span>&nbsp;<span ng-bind="item.item.price | number: 2"></span></div>
+              <div class="col-xs-2"><span ng-bind="item.quantity"></span>&nbsp;pcs.</div>
+              <div class="col-xs-3"><span>PHP&nbsp;</span>&nbsp;<span ng-bind="item.totalPrice | number: 2"></span></div>
+            </div>
+          </li>
+
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-xs-2 col-xs-offset-7 text-right"><b>Total Amount: </b></div>
+              <div class="col-xs-3">PHP&nbsp;<span ng-bind="cart.totalAmount | number: 2"></div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-md-12" style="margin-top: .5em">
+        <button type="submit" ng-click="confirmCheckout()" class="btn btn-success pull-right">
+            <span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>&nbsp;Confirm Checkout
+        </button>
+      </div>
+    </div>
+  </div>
+</section>

@@ -16,6 +16,10 @@ module.exports = function (app) {
     .put(adminPolicy.isAllowed, admin.update)
     .delete(adminPolicy.isAllowed, admin.delete);
 
+  app.route('/api/admin/viewcarts')
+    .get(adminPolicy.isAllowed, admin.viewTransactions)
+    .post(adminPolicy.isAllowed, admin.filterCarts);
+
   app.route('/api/admin/signup')
     .post(adminPolicy.isAllowed, admin.signup);
 

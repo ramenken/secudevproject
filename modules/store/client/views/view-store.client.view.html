@@ -1,4 +1,4 @@
-<section ng-controller="StoreController" ng-init="findItems();">
+<section ng-controller="StoreController" ng-init="find();">
   <div class="container">
   	<div class="row">
     	<div class="col-md-12">
@@ -6,29 +6,33 @@
         <hr class="divider">
 
         <div class="pull-right mini-store-nav">
-          <a href="#" ng-click=""><span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>&nbsp;Cart Items (0)</a>
+          <a ui-sref="store.cart" ng-click=""><span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>&nbsp;Cart Items (<span ng-bind="totalCartItems"></span>)</a>
           &nbsp;
           <a href="store/newitem"><span class="glyphicon glyphicon-plus" aria-hidden="true"></span>&nbsp;Add New Item</a>
         </div>
       </div>
 
-    <div class="col-md-3 item-preview">
+    <div class="col-md-3 item-preview slide" ng-show="hasItemFocus"> 
 
-    	<div class="item-image-preview" style='background-image: url({{preview.itemImageURL}});'></div>
+      <div style="margin-bottom: 15px;">
+        <button type="button" ui-sref="share({itemId: preview._id})" class="btn btn-default btn-xs">
+          <span class="glyphicon glyphicon-send" aria-hidden="true"></span>&nbsp;Share Item
+        </button>
 
-    	<div class="pull-right" ng-show="authentication.user.roles[1] == 'admin'" style="margin-top: 12px">
-        <button type="button" class="btn btn-default btn-xs" aria-label="Left Align" ng-click="editItem();">
-          <i class="glyphicon glyphicon-edit" aria-hidden="true"></i>
+        <button type="button" class="btn btn-default btn-xs" aria-label="Left Align" ui-sref="store.view({itemId: preview._id})">
+          View Item
         </button>
       </div>
 
+    	<div class="item-image-preview" style='background-image: url({{preview.itemImageURL}});'></div>
+
     	<h3 ng-bind="preview.name"></h3>
-    	<span class="item-price">P<span ng-bind="preview.price"></span></span>
+    	<span class="item-price">PHP&nbsp;<span ng-bind="preview.price"></span></span>
 
     	<p>Description:</p><p>
     	 <span ng-bind="preview.description"></span>
     	</p>
-		
+
 		  <hr>
 
       <div class="input-group">
@@ -42,14 +46,10 @@
       </div>
     </div>
 
-    <div class="col-md-9">
+    <div class="col-xs-12 no-flick" ng-class="{'shrink': hasItemFocus, 'expand': !hasItemFocus}" style="float: right;">
         <div class="row">
-          <div class="col-xs-6">
-            <input class="form-control" type="text" ng-model="search" placeholder="Enter substring or keyword of an item" ng-change="figureOutItemsToDisplay()" style="margin-top: 19px;" />
-          </div>
-
-          <div class="col-xs-6">
-            <pagination id="shop-pagination" name="shop-pagination" ng-change="pageChanged()" items-per-page="8" total-items="totalShopItems" ng-model="currentPage" max-size="maxSize" boundary-links="true" direction-links="false" class="text-center pull-right"></pagination>
+          <div class="col-xs-12">
+            <pagination id="shop-pagination" name="shop-pagination" ng-change="pageChanged()" items-per-page="8" total-items="totalShopItems" ng-model="currentPage" max-size="maxSize" boundary-links="true" direction-links="false" class="text-center"></pagination>
           </div>
         </div>
 
@@ -59,12 +59,12 @@
     		      <div class="item-thumbnail-1" style='background-image: url("{{item.itemImageURL}}");'></div>
     		      <div class="caption text-center">
     		      	<h5 ng-bind="item.name"></h5>
-    		        <span class="item-price">P<span ng-bind="item.price | number: 2"></span></span>
+    		        <span class="item-price">PHP&nbsp;<span ng-bind="item.price | number: 2"></span></span>
     		      </div>
     		    </div>
     		  </div>
         </div>
-  	</div>
-
+  	  </div>
+    </div>
   </div>
 </section>

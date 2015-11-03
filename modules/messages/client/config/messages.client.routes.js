@@ -37,6 +37,13 @@ angular.module('messages').config(['$stateProvider',
         data: {
           roles: ['user', 'admin']
         }
+      })
+      .state('share', {
+        url: '/share/:itemId',
+        templateUrl: 'modules/messages/client/views/share-item.client.view.html',
+        data: {
+          roles: ['user', 'admin']
+        }
       });
   }
 ]);

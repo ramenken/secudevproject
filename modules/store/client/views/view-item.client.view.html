@@ -1,0 +1,30 @@
+<section ng-controller="StoreController" ng-init="findOne();">
+  <div class="container">
+  	<div class="row">
+
+      <div class="view-item-block container">
+        <h3 ng-bind="preview.name"></h3>
+        <h3 class="item-price pull-right" style="margin-top: -35px;">PHP&nbsp;<span ng-bind="preview.price | number: 2"></span></h3>
+        <hr>
+        <div class="col-xs-4"> 
+          <div class="view-item-image-preview" style='background-image: url({{preview.itemImageURL}});'></div>      
+        </div>
+        <div class="col-xs-4">
+          <p>Description:</p><p>
+           <span ng-bind="preview.description"></span>
+          </p>
+        </div>
+
+
+        <div class="pull-right" ng-show="user.roles[1] == 'admin'">
+          <button type="button" class="btn btn-default btn-xs" aria-label="Left Align" ui-sref="store.edit({itemId: preview._id})">
+            Edit Item
+          </button>
+          <button type="button" class="btn btn-default btn-xs" aria-label="Left Align" ng-click="hideItem();">
+            Hide Item
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

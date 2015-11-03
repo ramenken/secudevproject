@@ -60,7 +60,7 @@ angular.module('users.admin').controller('AdminAuthController', ['$scope', '$sta
       $http.post('/api/admin/signup', $scope.credentials).success(function (response) {
         // And redirect to the previous or home page
         //$state.go($state.previous.state.name || 'home', $state.previous.params);
-        $state.go('admin.users');
+        $state.go('users');
       }).error(function (response) {
         $scope.error = response.message;
         if($scope.error.indexOf('authorized') >= 0)

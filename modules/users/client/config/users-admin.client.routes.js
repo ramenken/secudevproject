@@ -17,7 +17,7 @@ angular.module('users.admin.routes').config(['$stateProvider',
       .state('admin.carts', {
         url: '/carts',
         templateUrl: 'modules/users/client/views/admin/admin-view-carts.client.view.html',
-        controller: 'CartController'
+        controller: 'CartAdminController'
       });/*
       .state('admin.user', {
         url: '/users/:userId',

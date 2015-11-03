@@ -15,7 +15,7 @@ angular.module('store').factory('Store', ['$resource',
 
 angular.module('cart').factory('CartItem', ['$resource',
   function ($resource) {
-    return $resource('api/store/cart/:itemId', {
+    return $resource('api/cart/:itemId', {
       itemId: '@_id'
     }, {
       update: {

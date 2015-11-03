@@ -6,8 +6,10 @@
 var path = require('path'),
   mongoose = require('mongoose'),
   sanitizeHtml = require('sanitize-html'),
+  sanitizeMongo = require('mongo-sanitize'),
   User = mongoose.model('User'),
   Message = mongoose.model('Message'),
+  Cart = mongoose.model('Cart'),
   fs = require('fs-extra'),
   csv = require('fast-csv'),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller'));
@@ -36,6 +38,37 @@ var calculateAge = function(year) {
   return current_year - year;
 };
 
+exports.filterCarts = function(req, res) {
+
+  // Get the start and end dates from the controller and sanitize
+  var startDate = sanitizeMongo(req.body.startDate);
+      startDate = new Date(startDate);
+  var date_start = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  var endDate = sanitizeMongo(req.body.endDate);
+      endDate = new Date(endDate);
+  var date_end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()+1);
+
+  console.log('Filter: ' + date_start + ' to ' + date_end);
+
+  if(date_start > date_end)
+    return res.status(400).send({message: 'Start date should not be greater than the specified end date.'});
+
+  Cart.find({
+    'created': { $gt: date_start, $lt: date_end }
+  }).sort('-created')
+    .populate('user', 'username firstName lastName')
+    .populate('items.item', 'name price itemImageURL')
+    .exec(function (err, carts) {
+    if (err) {
+      return res.status(400).send({
+        message: errorHandler.getErrorMessage(err)
+      });
+    } else {
+      console.log(carts);
+      res.json(carts);
+    }
+  });
+};
 
 /**
  * Add Data
@@ -104,6 +137,21 @@ exports.loadCSV = function(req, res) {
    
   //stream.pipe(csvStream);
   res.sendStatus(200);
+};
+
+exports.viewTransactions = function(req, res) {
+  Cart.find().sort('-created')
+    .populate('user', 'username firstName lastName')
+    .populate('items.item', 'name price itemImageURL').exec(function (err, carts) {
+    if (err) {
+      return res.status(400).send({
+        message: errorHandler.getErrorMessage(err)
+      });
+    } else {
+      console.log(carts);
+      res.json(carts);
+    }
+  });
 };
 
 var dir = './modules/messages/server/files/backup/';

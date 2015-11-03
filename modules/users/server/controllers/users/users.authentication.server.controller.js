@@ -93,15 +93,6 @@ exports.signup = function (req, res) {
       user.salt = undefined;
 
       res.sendStatus(200);
-      /*
-      req.login(user, function (err) {
-        if (err) {
-          res.status(400).send(err);
-        } else {
-          res.json(user);
-        }
-      });
-      */
     }
   });
 };

@@ -35,6 +35,9 @@ exports.invokeRolesPolicies = function () {
     }, {
       resources: '/api/admin/loaddata',
       permissions: 'get'
+    }, {
+      resources: '/api/admin/viewcarts',
+      permissions: '*'
     }]
   }]);
 };

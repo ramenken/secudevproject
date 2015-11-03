@@ -16,8 +16,9 @@ module.exports = function (app) {
   app.route('/api/users/password').post(users.changePassword);
   app.route('/api/users/picture').post(users.changeProfilePicture);
 
-  app.route('/api/profile/:userId').all(profilesPolicy.isAllowed)
-    .get(users.read);
+  app.route('/api/profile/:userId').get(profilesPolicy.isAllowed, users.read);
+
+  app.route('/api/profile/badges/:userId').post(profilesPolicy.isAllowed, users.updateBadges);
 
   // Finish by binding the user middleware
   app.param('userId', users.userByID);

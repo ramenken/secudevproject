@@ -11,15 +11,10 @@
             <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>&nbsp;New Cart
         </button>
 
-        <form action="/api/store/cart/checkout" style="display:inline-block !important;" method="GET">
-          <button type="submit" class="btn btn-success">
+        <!--<form action="/api/store/cart/checkout" style="display:inline-block !important;" method="POST">-->
+          <button type="submit" ng-click="checkout();" class="btn btn-success">
               <span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>&nbsp;Checkout
           </button>
-        </form>
-
-        <button type="submit" ng-click="confirmCheckout()" class="btn btn-success">
-            <span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>&nbsp;Confirm Checkout
-        </button>
       </div>
 
       <div class="col-md-12" style="margin-top: 1em">
@@ -35,15 +30,23 @@
             </div>
           </li>
 
-          <li class="list-group-item" ng-repeat="item in cart.items">
+          <li class="list-group-item" ng-repeat="item in cart.items" ng-class="{donationpack: item.item.type === 'donation'}" >
             <div class="row cart-item-row">
-              <div class="col-xs-1"><div class="cart-thumbnail" style="background-image:url('{{item.itemImageURL}}');"></div></div>
-              <div class="col-xs-3"><span ng-bind="item.name"></span></div>
-              <div class="col-xs-2"><span>P</span>&nbsp;<span ng-bind="item.price"></span></div>
-              <div class="col-xs-2"><input type="number" name="quantity" class="form-control quantity-field" min="1" max="99" ng-model="item.quantity"/></div>
-              <div class="col-xs-3"><span>P</span>&nbsp;<span ng-bind="item.totalPrice | number: 2"></span></div>
+              <div class="col-xs-1"><div class="cart-thumbnail" style="background-image:url('{{item.item.itemImageURL}}');"></div></div>
+              <div class="col-xs-3"><a ui-sref="store.view({itemId: item.item._id})"><span ng-bind="item.item.name"></span></a></div>
+              <div class="col-xs-2"><span>PHP&nbsp;</span>&nbsp;<span ng-bind="item.item.price | number: 2"></span></div>
               <div class="col-xs-1">
-                <button id="add" type="button" class="btn advanced-search-btn btn-danger">
+
+                <input type="number" name="quantity" class="form-control quantity-field" min="0" ng-model="item.quantity" placeholder="Hover over this for a tooltip until this is filled" tooltip="Click the 'check' button to apply changes." tooltip-placement="left" tooltip-trigger="mouseenter" tooltip-enable="!inputModel"/>
+
+              </div>
+
+              <div class="col-xs-1">
+                <button class="btn btn-xs btn-default" ng-click="updateAmount(item)" style="margin-bottom: 7px"><span class="glyphicon glyphicon-check" aria-hidden="true"></span></button>
+              </div>
+              <div class="col-xs-3"><span>PHP&nbsp;</span>&nbsp;<span ng-bind="item.totalPrice | number: 2"></span></div>
+              <div class="col-xs-1">
+                <button id="add" type="button" class="btn advanced-search-btn btn-danger" ng-click="removeCartItem(item.item._id);">
                   <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
                 </button>
               </div>
@@ -53,7 +56,7 @@
           <li class="list-group-item">
             <div class="row">
               <div class="col-xs-3 col-xs-offset-5 text-right"><b>Total Amount: </b></div>
-              <div class="col-xs-3">P <span ng-bind="cart.totalAmount | number: 2"</div>
+              <div class="col-xs-3">PHP&nbsp;<span ng-bind="cart.totalAmount | number: 2"></div>
             </div>
           </li>
         </ul>
