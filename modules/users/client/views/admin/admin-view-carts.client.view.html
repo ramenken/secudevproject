@@ -44,7 +44,7 @@
             <div class="row cart-item-row">
               <div class="col-xs-2" ng-bind="cart.user.username"></div>
               <div class="col-xs-3"><span ng-bind="cart.user.firstName"></span>&nbsp;<span ng-bind="cart.user.lastName"></span></div>
-              <div class="col-xs-2"><span>PHP</span>&nbsp;<span ng-bind="cart.totalAmount | number: 2"></span></div>
+              <div class="col-xs-2"><span>$</span>&nbsp;<span ng-bind="cart.totalAmount | number: 2"></span></div>
               <div class="col-xs-2"><span ng-bind="cart.updated | date: mm/dd/yyyy"></span></div>
               <div class="col-xs-2"><a href="#" ng-click="isOpen = !isOpen"><span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>&nbsp;View Items</a></div>
 
@@ -66,7 +66,7 @@
                         </div>
 
                         <div class="col-xs-11">
-                          <span ng-bind="item.item.name"></span> x (<span ng-bind="item.quantity"></span>) - PHP&nbsp;<span ng-bind="item.totalPrice | number: 2"></span>
+                          <span ng-bind="item.item.name"></span> x (<span ng-bind="item.quantity"></span>) - $&nbsp;<span ng-bind="item.totalPrice | number: 2"></span>
                         </div>
                       </div>
                     </li>

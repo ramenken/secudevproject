@@ -15,7 +15,7 @@
   </div>
 
   <div class="container">
-    <div class="col-md-4 aboutme-block">
+    <div class="aboutme-block" ng-class="{'col-md-12': profileInfo.badges.length !== 0, 'col-md-4': profileInfo.badges.length > 0}">
       <ul class="ssul vp">
             <li class="ssa form-group">
               <p class="va">&nbsp;
@@ -56,7 +56,7 @@
 
     <div class="col-md-8">
 
-      <div class="col-sm-12 col-md-12">
+      <div class="col-sm-12 col-md-12" ng-show="profileInfo.badges.length !== 0">
         <div class="badge-pane"> 
           <div class="row">
             <p class="col-xs-3 badge-header badge-text">Badges</p>

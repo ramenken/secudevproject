@@ -183,13 +183,29 @@ angular.module('store').controller('StoreController', ['$scope', '$stateParams',
   	$scope.addItem = function(isValid) {
     	$scope.error = null;
 
-      	if (!isValid) {
-	        $scope.$broadcast('show-errors-check-validity', 'itemForm');
-        	return false;
-      	}
+      if($scope.itemForm.itemName.$error.required) {
+        $scope.error = 'Item name cannot be blank. ';
+      } else if($scope.itemForm.itemPrice.$error.required) {
+        $scope.error = 'Item price cannot be blank. ';
+      } else if($scope.itemForm.itemDescription.$error.required) {
+        $scope.error = 'Item description cannot be blank. ';
+      }
+
+      if($scope.uploader.queue.length === 0) {
+        $scope.error = 'Item image cannot be blank.';
+      }
+
+    	if (!isValid) {
+        $scope.$broadcast('show-errors-check-validity', 'itemForm');
+      	return false;
+    	}
 
 	    $scope.addImage();
-      $location.path('store');
+      if($scope.uploader.queue.length !== 0) {
+        $timeout(function(){
+          $location.path('store');
+        }, 3000);
+      }
     };
 
     // Find a list of Items
@@ -312,7 +328,6 @@ angular.module('store').controller('StoreController', ['$scope', '$stateParams',
     // Cancel the upload process
     $scope.cancelUpload = function () {
       $scope.uploader.clearQueue();
-      $scope.imageURL = '/modules/store/client/img/items/default.png';
     };
   }
 ]);

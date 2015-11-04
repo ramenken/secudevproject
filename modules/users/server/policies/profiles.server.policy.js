@@ -23,6 +23,9 @@ exports.invokeRolesPolicies = function () {
     }, {
       resources: '/api/profile/badges/:userId',
       permissions: '*'
+    }, {
+      resources: '/api/users',
+      permissions: '*'
     }]
   }, {
     roles: ['user'],
@@ -35,6 +38,9 @@ exports.invokeRolesPolicies = function () {
     }, {
       resources: '/api/profile/badges/:userId',
       permissions: ['post']
+    }, {
+      resources: '/api/users',
+      permissions: ['get']
     }]
   }, {
     roles: ['guest'],

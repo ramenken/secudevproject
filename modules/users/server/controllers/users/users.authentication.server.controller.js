@@ -8,7 +8,8 @@ var path = require('path'),
   mongoose = require('mongoose'),
   sanitizeHtml = require('sanitize-html'),
   passport = require('passport'),
-  User = mongoose.model('User');
+  User = mongoose.model('User'),
+  Cart = mongoose.model('Cart');
 
 // URLs for which user can't be redirected on signin
 var noReturnUrls = [
@@ -91,10 +92,22 @@ exports.signup = function (req, res) {
       // Remove sensitive data before login
       user.password = undefined;
       user.salt = undefined;
-
-      res.sendStatus(200);
+      
+      //res.sendStatus(200);
     }
   });
+
+  var cart = new Cart();
+      cart.user = user;
+      cart.items = [];
+
+      cart.save(function (err) {
+        if (err) {
+          return res.status(400).send({message: 'Failed to create a new cart'});
+        } else {
+          res.sendStatus(200);
+        }
+      });
 };
 
 /**

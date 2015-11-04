@@ -117,7 +117,7 @@
                     <li class="list-group-item" ng-repeat="item in message.attachedItems">
                       <img class="cart-thumbnail" src="{{item.item.itemImageURL}}" alt="{{item.item.name}}"/>
                       <span ng-bind="item.item.name" ui-sref="store.view({itemId: item.item._id})"></span>
-                      (PHP&nbsp;<span ng-bind="item.item.price | number: 2"></span>)
+                      ($<span ng-bind="item.item.price | number: 2"></span>)
                     </li>
                   </ul>
                 </div>

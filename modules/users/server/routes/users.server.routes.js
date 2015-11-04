@@ -7,7 +7,7 @@ module.exports = function (app) {
 
   // Users collection routes
   app.route('/api/users')
-    .get(users.list);
+    .get(profilesPolicy.isAllowed, users.list);
 
   // Setting up the users profile api
   app.route('/api/users/me').get(users.me);

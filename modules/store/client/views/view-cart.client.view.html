@@ -1,14 +1,16 @@
 <section ng-controller="StoreController" ng-init="findCartItems()">
   <div class="container">
     <div class="row">
-      <div class="col-md-12">
-        <h1>View Carts</h1>
-        <hr class="divider">
+      <h2 class="callout-title">View Cart</h2>
+      <div class="col-md-12 callout">
+        <br/>
+        <p>Note: Paypal prevents checkout if there is a <span style="color: red;"><b>red item price</b></span> (new price).</p>
+        <p>To agree with the new price, manually <b>re-compute</b> the price of the row with the price by pressing the refresh button beside 'Quantity' field or <b>remove</b> the item.</p>
       </div>
 
-      <div class="col-md-8" style="margin-top: .5em">
-        <button type="submit" ng-click="newCart()" class="btn btn-primary">
-            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>&nbsp;New Cart
+      <div class="col-md-8" style="margin-top: 1.5em">
+        <button type="submit" ng-click="newCart()" class="btn btn-primary" tooltip="If you have items not appearing on cart, try to 'fix' cart." tooltip-placement="bottom" tooltip-trigger="mouseenter" tooltip-enable="!inputModel">
+            <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>&nbsp;Fix Cart
         </button>
 
         <!--<form action="/api/store/cart/checkout" style="display:inline-block !important;" method="POST">-->
@@ -34,17 +36,17 @@
             <div class="row cart-item-row">
               <div class="col-xs-1"><div class="cart-thumbnail" style="background-image:url('{{item.item.itemImageURL}}');"></div></div>
               <div class="col-xs-3"><a ui-sref="store.view({itemId: item.item._id})"><span ng-bind="item.item.name"></span></a></div>
-              <div class="col-xs-2"><span>PHP&nbsp;</span>&nbsp;<span ng-bind="item.item.price | number: 2"></span></div>
+              <div class="col-xs-2" ng-class="{'new-notification': item.item.price * item.quantity !== item.totalPrice}"><span>$&nbsp;</span>&nbsp;<span ng-bind="item.item.price | number: 2"></span></div>
               <div class="col-xs-1">
 
-                <input type="number" name="quantity" class="form-control quantity-field" min="0" ng-model="item.quantity" placeholder="Hover over this for a tooltip until this is filled" tooltip="Click the 'check' button to apply changes." tooltip-placement="left" tooltip-trigger="mouseenter" tooltip-enable="!inputModel"/>
+                <input type="number" name="quantity" class="form-control quantity-field" min="0" ng-model="item.quantity" tooltip="Click the 'refresh' button to apply changes." tooltip-placement="left" tooltip-trigger="mouseenter" tooltip-enable="!inputModel"/>
 
               </div>
 
               <div class="col-xs-1">
-                <button class="btn btn-xs btn-default" ng-click="updateAmount(item)" style="margin-bottom: 7px"><span class="glyphicon glyphicon-check" aria-hidden="true"></span></button>
+                <button class="btn btn-xs btn-default" ng-click="updateAmount(item)" style="margin-bottom: 7px"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
               </div>
-              <div class="col-xs-3"><span>PHP&nbsp;</span>&nbsp;<span ng-bind="item.totalPrice | number: 2"></span></div>
+              <div class="col-xs-3"><span>$&nbsp;</span>&nbsp;<span ng-bind="item.totalPrice | number: 2"></span></div>
               <div class="col-xs-1">
                 <button id="add" type="button" class="btn advanced-search-btn btn-danger" ng-click="removeCartItem(item.item._id);">
                   <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
@@ -56,7 +58,7 @@
           <li class="list-group-item">
             <div class="row">
               <div class="col-xs-3 col-xs-offset-5 text-right"><b>Total Amount: </b></div>
-              <div class="col-xs-3">PHP&nbsp;<span ng-bind="cart.totalAmount | number: 2"></div>
+              <div class="col-xs-3">$&nbsp;<span ng-bind="cart.totalAmount | number: 2"></div>
             </div>
           </li>
         </ul>

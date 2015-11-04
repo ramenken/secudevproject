@@ -10,6 +10,7 @@ var path = require('path'),
   User = mongoose.model('User'),
   Message = mongoose.model('Message'),
   Cart = mongoose.model('Cart'),
+  Transaction = mongoose.model('Transaction'),
   fs = require('fs-extra'),
   csv = require('fast-csv'),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller'));
@@ -140,7 +141,7 @@ exports.loadCSV = function(req, res) {
 };
 
 exports.viewTransactions = function(req, res) {
-  Cart.find().sort('-created')
+  Transaction.find().sort('-created')
     .populate('user', 'username firstName lastName')
     .populate('items.item', 'name price itemImageURL').exec(function (err, carts) {
     if (err) {
@@ -271,7 +272,7 @@ exports.signup = function (req, res) {
   } else {
     return res.status(400).send({message: 'Incorrect Gender!'});
   }
-  console.log(roles);
+
   if(roles)
     if(roles[1] === 'admin') {
       console.log('New Admin Registration!');
@@ -295,7 +296,7 @@ exports.signup = function (req, res) {
       user.password = undefined;
       user.salt = undefined;
 
-      res.sendStatus(200);
+      //res.sendStatus(200);
       /*
       req.login(user, function (err) {
         if (err) {
@@ -307,6 +308,18 @@ exports.signup = function (req, res) {
       */
     }
   });
+
+  var cart = new Cart();
+      cart.user = user;
+      cart.items = [];
+
+      cart.save(function (err) {
+        if (err) {
+          return res.status(400).send({message: 'Failed to create a new cart'});
+        } else {
+          res.sendStatus(200);
+        }
+      });
 };
 
 /**

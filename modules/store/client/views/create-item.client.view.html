@@ -6,12 +6,24 @@
         <hr>
       </div>
 
+      <div class="col-xs-12">
+        <div class="alert alert-danger text-danger" ng-show="error">
+          <b>Error: </b><span ng-bind="error"></span>
+        </div>
+      </div>
+
+      <div class="col-xs-12">
+        <div class="alert alert-success text-success" ng-show="success">
+          <b>Item Successfully Added: </b><span ng-bind="success"></span>
+        </div>
+      </div>
+
       <form name="itemForm" class="col-xs-12" ng-submit="addItem(itemForm.$valid)" novalidate>
         <fieldset>
 
       <div class="col-md-4">
         <div class="col-xs-12">
-            Select Image <input type="file" nv-file-select uploader="uploader">
+            Select Image <input type="file" nv-file-select uploader="uploader" required>
 
             <div class="image-pane"> 
               <div class="row">
@@ -28,7 +40,7 @@
         <div class="col-xs-12">
           <div class="input-group">
             <span class="input-group-addon" id="name-addon">Item Name</span>
-            <input type="text" class="form-control" aria-describedby="name-addon" ng-model="item.name"/>
+            <input name="itemName" id="itemName" type="text" class="form-control" aria-describedby="name-addon" ng-model="item.name" required/>
           </div>
         </div>
 
@@ -36,21 +48,21 @@
 
         <div class="col-xs-12">
           <div class="input-group">
-            <span class="input-group-addon" id="qty-addon">PHP</span>
-            <input type="text" class="form-control" aria-describedby="qty-addon" ng-model="item.price"/>
+            <span class="input-group-addon" id="qty-addon">USD ($)</span>
+            <input name="itemPrice" id="itemPrice" type="text" class="form-control" aria-describedby="qty-addon" ng-model="item.price" required/>
           </div>
         </div>
 
         <div class="col-xs-12">
           <br/>
-          <label for="description">Item Description:</label>
-          <textarea id="description" name="description" class="form-control" rows="5" placeholder="Enter item description here" required ng-model="item.description"></textarea>
+          <label for="itemDescription">Item Description:</label>
+          <textarea name="itemDescription" id="itemDescription" id="description" name="description" class="form-control" rows="5" placeholder="Enter item description here" required ng-model="item.description" required></textarea>
         </div>
 
         <div class="col-xs-12">
           <br/>
-          <label for="itemtype">Item type:</label>
-          <select id="itemtype" name="itemtype" class="btn form-control btn-default dropdown-toggle btn-block" ng-options="option.value as option.name for option in item.types" ng-model="item.type" required>
+          <label for="itemType">Item type:</label>
+          <select id="itemType" name="itemType" class="btn form-control btn-default dropdown-toggle btn-block" ng-options="option.value as option.name for option in item.types" ng-model="item.type" required>
           </select>
         </div>
 

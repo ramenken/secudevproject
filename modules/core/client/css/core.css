@@ -9,6 +9,10 @@
   text-align: center;
 }
 
+.new-notification {
+  color: red;
+}
+
 .overlay {
   position: fixed;
   width: 100%;

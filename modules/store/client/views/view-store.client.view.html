@@ -27,7 +27,7 @@
     	<div class="item-image-preview" style='background-image: url({{preview.itemImageURL}});'></div>
 
     	<h3 ng-bind="preview.name"></h3>
-    	<span class="item-price">PHP&nbsp;<span ng-bind="preview.price"></span></span>
+    	<span class="item-price">$&nbsp;<span ng-bind="preview.price"></span></span>
 
     	<p>Description:</p><p>
     	 <span ng-bind="preview.description"></span>
@@ -49,6 +49,11 @@
     <div class="col-xs-12 no-flick" ng-class="{'shrink': hasItemFocus, 'expand': !hasItemFocus}" style="float: right;">
         <div class="row">
           <div class="col-xs-12">
+            <div class="alert alert-danger text-danger" ng-show="error">
+              <b>Error: </b><span ng-bind="error"></span>
+            </div>
+          </div>
+          <div class="col-xs-12" style="margin-top: .3em">
             <pagination id="shop-pagination" name="shop-pagination" ng-change="pageChanged()" items-per-page="8" total-items="totalShopItems" ng-model="currentPage" max-size="maxSize" boundary-links="true" direction-links="false" class="text-center"></pagination>
           </div>
         </div>
@@ -59,7 +64,7 @@
     		      <div class="item-thumbnail-1" style='background-image: url("{{item.itemImageURL}}");'></div>
     		      <div class="caption text-center">
     		      	<h5 ng-bind="item.name"></h5>
-    		        <span class="item-price">PHP&nbsp;<span ng-bind="item.price | number: 2"></span></span>
+    		        <span class="item-price">$&nbsp;<span ng-bind="item.price | number: 2"></span></span>
     		      </div>
     		    </div>
     		  </div>

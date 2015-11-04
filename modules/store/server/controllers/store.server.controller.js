@@ -10,6 +10,7 @@ var path = require('path'),
   User = mongoose.model('User'),
   Item = mongoose.model('Item'),
   Cart = mongoose.model('Cart'),
+  Transaction = mongoose.model('Transaction'),
   paypal = require('paypal-rest-sdk'),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller'));
 
@@ -26,16 +27,17 @@ var verifyUser = function(user1, user2) {
   return false;
 };
 
-var verifyUserId = function(userId1, userId2) {
-  if(userId1 !== userId2)
+var rejectUserId = function(userId1, userId2) {
+  var authId = JSON.stringify(userId2).replace(/\"/g, "");
+
+  if(userId1 !== authId)
     return true;
   
   return false;
 };
 
 var computeItems = function(userId, newItemPrice, callback) {
-  
-  var promise = Cart.findOne({'user': userId, 'status': '0'}).exec(); //Look for the current active cart (Not paid)
+  var promise = Cart.findOne({'user': userId, $or: [{'status': '0'},{'status': '2'}]}).exec(); //Look for the current active cart (Not paid)
 
   promise.then(function(cart){
     var total = newItemPrice;
@@ -91,7 +93,7 @@ var computeBoth = function(userId, amount1, amount2, callback) {
 };
 
 var isItemExists = function(userId, itemId, callback) {       
-  return Cart.findOne({'user': userId, 'status': '0'}) //Look for the current active cart (Not paid)
+  Cart.findOne({'user': userId, $or: [{'status': '0'},{'status': '2'}]}) //Look for the current active cart (Not paid)
     .exec(function (err, cart) {
       if (err)
         return false;
@@ -115,10 +117,18 @@ var isItemExists = function(userId, itemId, callback) {
  * Create a item
  */
 exports.create = function (req, res) {
+  if(rejectUserId(req.body.displayedUserId, req.user._id)){
+    return res.status(400).send({message: 'Logged in as another user. Please refresh the page.'});
+  }
+  delete req.body.displayedUserId;
+
   var item = new Item(req.body);
 
   if(item.price <= 0) {
     return res.status(400).send({message: 'Price cannot be 0 and below.'});
+  }
+  else if(item.price >= 1000) {
+    return res.status(400).send({message: 'Item price is too high! Limit it to $1 ~ $999.'});
   }
 
   if(req.files.file.name === null) {
@@ -150,7 +160,7 @@ exports.create = function (req, res) {
 exports.countCartItems = function(req, res) {
   var user = req.user;
 
-  Cart.findOne({'user': user._id, 'status': '0'}) //Look for the current active cart (Not paid)
+  Cart.findOne({'user': user._id, $or: [{'status': '0'},{'status': '2'}]}) //Look for the current active cart (Not paid)
     .exec(function (err, cart) {
       if (err)
         return false;
@@ -168,35 +178,30 @@ exports.countCartItems = function(req, res) {
 };
 
 exports.ipnHandler = function(req, res) {
+  console.log('Verifying Checkout Transaction');
   console.log(req.body);
+
   if(req.body.item_number === 'secudevdonation5' || req.body.item_number === 'secudevdonation10' || 
     req.body.item_number === 'secudevdonation20') {
-    if(req.body.payment_status === 'Completed') {
-      console.log('You donated $' + req.body.payment_gross);
-      
-      // Add to total donations
-      computeDonation(req.body.custom, req.body.payment_gross, function(amount) {
-        console.log(amount);
-        User.update({'_id': req.body.custom}, { $set: 
-            { 
-              'contribution': amount
-            }
-          }).exec(function(err, user){
-              if (err) {
-                return res.status(400).send({
-                  message: errorHandler.getErrorMessage(err)
-                });
-              } else {
-                console.log(user);
-                res.json(user);
-              } 
-            });
-      });
-    }
+      if(req.body.payment_status === 'Completed') {
+        console.log('You donated $' + req.body.payment_gross);
+        
+        // Add to total donations
+        computeDonation(req.body.custom, req.body.payment_gross, function(amount) {
+          User.update({'_id': req.body.custom}, 
+            { $set: 
+              { 
+                'contribution': amount
+              }
+            }).exec(function(err, user){
+                if (err)
+                  return res.status(400).send({message: errorHandler.getErrorMessage(err)});
+                else
+                  res.json(user);
+              });
+        });
+      }
   } else {
-    console.log('Verifying Transaction');
-    console.log(req.body);
-
     res.status(200).send({'message': 'I received your Checkout IPN!'});
   }
 };
@@ -214,7 +219,7 @@ exports.deleteCartItem = function (req, res) {
   
   console.log('Deleting item ' + itemId);
 
-  Cart.update({'user': req.user._id, 'status': '0'}, {
+  Cart.update({'user': req.user._id, $or: [{'status': '0'},{'status': '2'}]}, {
     '$pull': {
         'items': {
           'item': itemId
@@ -226,7 +231,7 @@ exports.deleteCartItem = function (req, res) {
         });
       } else {
         computeItems(req.user._id, 0, function(totalAmount){
-          Cart.update({'user': req.user._id, 'status': '0'}, 
+          Cart.update({'user': req.user._id, $or: [{'status': '0'},{'status': '2'}]}, 
             { $set: { 
                 'totalAmount': totalAmount }
             }).exec(function (err, item) {
@@ -253,7 +258,7 @@ exports.updateCartItem = function(req, res) {
   var totalPrice = newItem.item.price * newItem.quantity;
   console.log('Updating total price: ' + totalPrice);
 
-  Cart.update({'user': req.user._id, 'status': '0', 'items.item': newItem.item._id}, {
+  Cart.update({'user': req.user._id, $or: [{'status': '0'},{'status': '2'}], 'items.item': newItem.item._id}, {
     '$set': {
         'items.$.price': newItem.item.price,
         'items.$.quantity': newItem.quantity,
@@ -265,7 +270,7 @@ exports.updateCartItem = function(req, res) {
         });
       } else {
         computeItems(req.user._id, 0, function(totalAmount){
-          Cart.update({'user': req.user._id, 'status': '0'}, 
+          Cart.update({'user': req.user._id, $or: [{'status': '0'},{'status': '2'}]}, 
             { $set: { 
                 'totalAmount': totalAmount }
             }).exec(function (err, item) {
@@ -337,7 +342,12 @@ exports.addToCart = function(req, res) {
 
   //TODO Further Error Checking
   if(req.body._itemId === null) {
-    res.status(400).send({message: 'No item selected.'});
+    return res.status(400).send({message: 'No item selected.'});
+  }
+
+  console.log('Quantity: ' + req.body.quantity);
+  if(req.body.quantity <= 0 || req.body.quantity === null || req.body.quantity === undefined) {
+    return res.status(400).send({message: 'Invalid item quantity.'});
   }
 
   var cartItem = {item: '', quantity: 0, totalPrice: 0};
@@ -345,10 +355,6 @@ exports.addToCart = function(req, res) {
 
   cartItem.item = item;
   cartItem.quantity = req.body.quantity;
-
-  if(item.quantity <= 0) {
-    res.status(400).send({message: 'Invalid item quantity.'});
-  }
 
   cartItem.totalPrice = cartItem.quantity * cartItem.item.price;
   console.log('Total Price: ' + cartItem.totalPrice);
@@ -365,7 +371,7 @@ exports.addToCart = function(req, res) {
           var newQty = quantity + cartItem.quantity;
           console.log(newQty);
           var newTotalPrice = newQty * cartItem.item.price;
-          Cart.update({'items.item': itemId }, {'$set': {
+          Cart.update({'user': req.user._id, $or: [{'status': '0'}, {'status': '2'}], 'items.item': itemId }, {'$set': {
             'items.$.quantity': newQty,
             'items.$.totalPrice': newTotalPrice,
             'totalAmount': totalAmount
@@ -375,13 +381,14 @@ exports.addToCart = function(req, res) {
                 message: errorHandler.getErrorMessage(err)
               });
             } else {
+              console.log(item);
               res.json(item);
             }
           });
         } else {
           console.log('Item does not exist. Creating another row for it.');
 
-          Cart.update({'user': req.user._id, 'status': '0'}, {
+          Cart.update({'user': req.user._id, $or: [{'status': '0'}, {'status': '2'}]}, {
             $push: {
               'items': {
                 'item': cartItem.item,
@@ -471,8 +478,8 @@ exports.checkout = function(req, res) {
   };
   
   console.log('Payment!');
-  paypalPayment.redirect_urls.return_url = 'https://159.203.83.226/checkout/confirm';
-  paypalPayment.redirect_urls.cancel_url = 'https://159.203.83.226/checkout/cancel';
+  paypalPayment.redirect_urls.return_url = 'http://localhost:3000/checkout/confirm';
+  paypalPayment.redirect_urls.cancel_url = 'http://localhost:3000/checkout/cancel';
   paypal.payment.create(paypalPayment, {}, function (err, response) { 
     if (err) {
       return res.send({'message': 'There seems to be an error in the payment API request. Please try again.',
@@ -481,6 +488,22 @@ exports.checkout = function(req, res) {
     else if (response) {
       console.log(response);
       var link = response.links;
+
+      Cart.findOne({'user': req.user._id, $or:[{'status': 0},{'status': 2}]}).exec(function(err, cart) {
+        var transaction = new Transaction();
+        transaction.items = cart.items;
+        transaction.user = cart.user;
+        transaction.status = 0;
+        transaction.totalAmount = cart.totalAmount;
+        transaction.created = cart.created;
+        transaction.updated = cart.updated;
+
+        transaction.save(function (err) {
+          if (err) {
+            return res.status(400).send({ message: 'Cart creation failed. Try to create cart manually in the cart page.'});
+          }
+        });
+      });
 
       for (var i = 0; i < link.length; i++) {
           if (link[i].rel === 'approval_url') {
@@ -499,7 +522,7 @@ exports.cancelCheckout = function(req, res) {
   delete req.body.displayedUser;
 
   if(req.body.token !== null) {
-    Cart.update({'user': req.user._id, 'status': '0'}, { 
+    Cart.update({'user': req.user._id, $or: [{'status': '0'},{'status': '2'}]}, { 
         $set: { 
           'status': 2
         }
@@ -510,6 +533,16 @@ exports.cancelCheckout = function(req, res) {
           res.json(cart);
         }
       });
+
+    Transaction.update({'user': req.user._id, 'status': '0'}, { 
+          $set: { 
+            'status': 2
+          }
+        }).exec(function (err, cart) {
+          if (err) {
+            return res.status(400).send({message: errorHandler.getErrorMessage(err)});
+          }
+        });
   }
 };
 
@@ -534,7 +567,7 @@ exports.confirmCheckout = function(req, res) {
       var donationPackSum = 0;
       var purchaseSum = 0;
 
-      Cart.find({'user': req.user._id, 'status': 0})
+      Cart.find({'user': req.user._id, $or:[{'status': 0},{'status': 2}]})
         .populate('items.item','name price type') //Look for the current active cart (All paid)
         .exec(function (err, carts) {
           if (err)
@@ -570,7 +603,17 @@ exports.confirmCheckout = function(req, res) {
           }
         });
 
-      Cart.update({'user': req.user._id, 'status': '0'}, { 
+      Cart.update({'user': req.user._id, $or: [{'status': '0'},{'status': '2'}]}, { 
+          $set: { 
+            'status': 1
+          }
+        }).exec(function (err, cart) {
+          if (err) {
+            return res.status(400).send({message: errorHandler.getErrorMessage(err)});
+          }
+        });
+
+      Transaction.update({'user': req.user._id, 'status': '0'}, { 
           $set: { 
             'status': 1
           }
@@ -596,7 +639,7 @@ exports.confirmCheckout = function(req, res) {
 };
 
 exports.getCount = function(req, res) {
-  Item.count(function(err, count) {
+  Item.find({'isHidden': false}).count(function(err, count) {
     if (err)
       return res.status(400).send({
           message:errorHandler.getErrorMessage(err)
@@ -658,6 +701,10 @@ exports.delete = function (req, res) {
  * Update a item
  */
 exports.update = function (req, res) {
+  if(rejectUserId(req.body.displayedUserId, req.user._id)){
+    return res.status(400).send({message: 'Logged in as another user. Please refresh the page.'});
+  }
+  delete req.body.displayedUserId;
   var item = req.item;
 
   item.price = req.body.price;
@@ -685,7 +732,7 @@ exports.update = function (req, res) {
 };
 
 exports.updateItemPicture = function (req, res) {
-  if(verifyUser(req.body.displayedUserId, req.user._id)){
+  if(rejectUserId(req.body.displayedUserId, req.user._id)){
     return res.status(400).send({message: 'Logged in as another user. Please refresh the page.'});
   }
   delete req.body.displayedUserId;
@@ -738,7 +785,6 @@ exports.list = function (req, res) {
  * Item middleware
  */
 exports.itemByID = function (req, res, next, id) {
-
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(400).send({
       message: 'Item is invalid'
