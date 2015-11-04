@@ -54,7 +54,7 @@ exports.filterCarts = function(req, res) {
   if(date_start > date_end)
     return res.status(400).send({message: 'Start date should not be greater than the specified end date.'});
 
-  Cart.find({
+  Transaction.find({
     'created': { $gt: date_start, $lt: date_end }
   }).sort('-created')
     .populate('user', 'username firstName lastName')
