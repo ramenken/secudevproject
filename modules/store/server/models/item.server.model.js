@@ -14,6 +14,10 @@ var ItemSchema = new Schema({
     type: Date,
     default: Date.now
   },
+  updated: {
+    type: Date,
+    default: Date.now
+  },
   name: {
     type: String,
     default: '',
@@ -32,9 +36,16 @@ var ItemSchema = new Schema({
   },
   price: {
     type: Number,
-    default: 0,
     required: 'Price cannot be blank'
   },
+  type: {
+    type: String,
+    default: 'item'
+  },
+  isHidden: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 mongoose.model('Item', ItemSchema);

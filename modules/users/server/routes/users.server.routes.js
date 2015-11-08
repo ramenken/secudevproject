@@ -7,7 +7,7 @@ module.exports = function (app) {
 
   // Users collection routes
   app.route('/api/users')
-    .get(users.list);
+    .get(profilesPolicy.isAllowed, users.list);
 
   // Setting up the users profile api
   app.route('/api/users/me').get(users.me);
@@ -16,8 +16,9 @@ module.exports = function (app) {
   app.route('/api/users/password').post(users.changePassword);
   app.route('/api/users/picture').post(users.changeProfilePicture);
 
-  app.route('/api/profile/:userId').all(profilesPolicy.isAllowed)
-    .get(users.read);
+  app.route('/api/profile/:userId').get(profilesPolicy.isAllowed, users.read);
+
+  app.route('/api/profile/badges/:userId').post(profilesPolicy.isAllowed, users.updateBadges);
 
   // Finish by binding the user middleware
   app.param('userId', users.userByID);

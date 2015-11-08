@@ -52,8 +52,7 @@ angular.module('users').controller('AuthenticationController', ['$scope', '$stat
 
         // And redirect to the previous or home page
         //$state.go($state.previous.state.name || 'home', $state.previous.params);
-        console.log('redirected!');
-        $location.path('/');
+        $location.path('signin');
         //$state.go('messages.list');
       }).error(function (response) {
         $scope.error = response.message;

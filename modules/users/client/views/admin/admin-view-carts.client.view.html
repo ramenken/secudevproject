@@ -1,19 +1,35 @@
-<section ng-controller="StoreController" ng-init="find()">
+<section>
   <div class="container">
-    <div class="row">
-      <div class="col-md-12">
-        <h1>View Carts</h1>
-        <hr class="divider">
+    <div class="row ">
+      <div class="col-md-12 callout">
+        <h4 class="callout-title">View Transactions</h4>
+        <p>Here you can find the list of transactions. Filter them as you wish. Date format: dd/mm/yyyy (for Google Chrome)</p>
       </div>
+      <hr/>
       
       <div class="col-md-3" style="margin-top: .5em">
-        <input type="date" name="date-range" class="form-control"/>
+        <input type="date" name="date-range" class="form-control" ng-model="startDate"/>
+      </div>
+      <div class="col-md-3" style="margin-top: .5em">
+        <input type="date" name="date-range" class="form-control" ng-model="endDate"/>
       </div>
       <div class="col-md-1" style="margin-top: .5em">
-        <button type="button" ng-click="createBackup()" class="btn btn-primary">
+        <button type="button" ng-click="filterCarts()" class="btn btn-primary">
             <span class="glyphicon glyphicon-calendar" aria-hidden="true"></span>&nbsp;Filter Carts
         </button>
       </div>
+
+      <div class="col-xs-12" style="margin-top: .3em">
+        <pagination id="shop-pagination" name="shop-pagination" ng-change="pageChanged()" items-per-page="8" total-items="totalCarts" ng-model="currentPage" max-size="maxSize" boundary-links="true" direction-links="false" class="text-center"></pagination>
+      </div>
+
+    <script type="text/ng-template" id="group-template.html">
+      <div class="item-panel-group">
+        <div class="panel-collapse collapse" collapse="!isOpen">
+          <div class="panel-body" ng-transclude></div>
+        </div>
+      </div>
+    </script>
 
       <div class="col-md-12" style="margin-top: 1em">
         <ul class="list-group">
@@ -21,20 +37,46 @@
             <div class="row">
               <div class="col-xs-2"><b>Username</b></div>
               <div class="col-xs-3"><b>Name</b></div>
-              <div class="col-xs-3"><b>Amount</b></div>
+              <div class="col-xs-2"><b>Amount</b></div>
+              <div class="col-xs-2"><b>Date</b></div>
               <div class="col-xs-2"><b>Items</b></div>
               <div class="col-xs-1"><b>Status</b></div>
             </div>
           </li>
           <!--ng-repeat="backup in backups | orderBy: '-created'"-->
-          <li class="list-group-item">
+          <li class="list-group-item" ng-repeat="cart in transactions">
             <div class="row cart-item-row">
-              <div class="col-xs-2">kenasanion</div>
-              <div class="col-xs-3">Ken Asanion</div>
-              <div class="col-xs-3"><span>$</span><span>0.00</span></div>
-              <div class="col-xs-2"><a href="#"><span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>&nbsp;View Items</a></div>
-              <div class="col-xs-1"><span>Cancelled</span></div>
+              <div class="col-xs-2" ng-bind="cart.user.username"></div>
+              <div class="col-xs-3"><span ng-bind="cart.user.firstName"></span>&nbsp;<span ng-bind="cart.user.lastName"></span></div>
+              <div class="col-xs-2"><span>$</span>&nbsp;<span ng-bind="cart.totalAmount | number: 2"></span></div>
+              <div class="col-xs-2"><span ng-bind="cart.updated | date: 'short'"></span></div>
+              <div class="col-xs-2"><a href="#" ng-click="isOpen = !isOpen"><span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>&nbsp;View Items</a></div>
+
+              <div class="col-xs-1">
+                <span ng-if="cart.status == 0">Not Paid</span>
+                <span ng-if="cart.status == 1">Paid</span>
+                <span ng-if="cart.status == 2">Cancelled</span>
+              </div>
             </div>
+              <accordion>
+                <accordion-group class="row" is-open="isOpen" template-url="group-template.html">
+                  <h5 style="color: #50A6C2; margin-top: 0">Item List:</h5>
+
+                  <ul class="list-group" style="margin-bottom: 0">
+                    <li class="list-group-item" ng-repeat="item in cart.items">
+                      <div class="row">
+                        <div class="col-xs-1">
+                          <div class="cart-thumbnail" style="background-image:url('{{item.item.itemImageURL}}');"></div>
+                        </div>
+
+                        <div class="col-xs-11">
+                          <span ng-bind="item.item.name"></span> x (<span ng-bind="item.quantity"></span>) - $&nbsp;<span ng-bind="item.totalPrice | number: 2"></span>
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </accordion-group>
+              </accordion>
           </li>
         </ul>
       </div>

@@ -88,6 +88,14 @@ var UserSchema = new Schema({
 		type: String,
 		default: 'Male'
 	},
+  contribution: {
+    type: Number,
+    default: 0
+  },
+  totalpurchase: {
+    type: Number,
+    default: 0
+  },
 	salutation: {
 		type: String,
 		default: 'Mr.',

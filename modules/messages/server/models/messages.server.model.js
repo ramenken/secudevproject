@@ -21,6 +21,14 @@ var MessageSchema = new Schema({
     trim: true,
     required: 'You didn\'t supply any content for your post. It\'s also possible that your content was cleaned beucase of the following: unclosed tags, script tags, forbidden url, etc.'
   },
+  attachedItems: [
+    {
+      item: {
+        type: Schema.ObjectId,
+        ref: 'Item'
+      }
+    }
+  ],
   editedDate: {
     type: Date
   },

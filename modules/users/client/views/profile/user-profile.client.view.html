@@ -10,12 +10,26 @@
           (&nbsp;<span ng-bind="profile.username"></span>&nbsp;)
         </h3>
         <p ng-bind="profile.aboutme"></p>
+        <ul class="ssul phul">
+          <li class="ph">
+            <span class="phh">Posts</span>
+            <p class="phc" ng-bind="profileInfo.postCount"></p>
+          </li>
+          <li class="ph">
+            <span class="phh">Donation</span>
+            <p class="phc">$&nbsp;<span ng-bind="profileInfo.donationCount"></span></p>
+          </li>
+          <li class="ph phl">
+            <span class="phh">Purchase</span>
+            <p class="phc">$&nbsp;<span ng-bind="profileInfo.purchaseCount"></span></p>
+          </li>
+        </ul>
       </div>
     </div>
   </div>
 
   <div class="container">
-    <div class="col-md-4 aboutme-block">
+    <div class="aboutme-block" ng-class="{'col-md-12': profileInfo.badges.length !== 0, 'col-md-4': profileInfo.badges.length > 0}">
       <ul class="ssul vp">
             <li class="ssa form-group">
               <p class="va">&nbsp;
@@ -56,118 +70,22 @@
 
     <div class="col-md-8">
 
-      <div class="col-sm-12 col-md-12">
+      <div class="col-sm-12 col-md-12" ng-show="profileInfo.badges.length !== 0">
         <div class="badge-pane"> 
           <div class="row">
-            <p class="col-xs-3 badge-header badge-text">Hall of Fame Badges</p>
+            <p class="col-xs-3 badge-header badge-text">Badges</p>
           </div>
 
           <div class="row text-center">
-            <div class="col-xs-4 text-center">
-              <div class="badge-thumbnail" style='background-image: url("/modules/users/client/img/badges/explorer.png");'>
+            <div class="col-xs-4 text-center" ng-repeat="badge in profileInfo.badges">
+              <div class="badge-thumbnail" style='background-image: url("{{badge.badgeImageURL}}");' tooltip="{{badge.description}}" tooltip-placement="top" tooltip-trigger="mouseenter" tooltip-enable="!inputModel">
               </div>
-              <p class="badge-text">???</p>
-            </div>
-
-            <div class="col-xs-4">
-              <div class="badge-thumbnail" style='background-image: url("/modules/users/client/img/badges/backer.png");'>
-              </div>
-              <p class="badge-text">???</p>
-            </div>
-
-            <div class="col-xs-4">
-              <div class="badge-thumbnail" style='background-image: url("/modules/users/client/img/badges/evangelist.png");'>
-              </div>
-              <p class="badge-text">???</p>
+              <p class="badge-text" ng-bind="badge.name"></p>
             </div>
           </div>
         </div> 
       </div>
-
-      <div class="col-sm-6 col-md-6">
-        <div class="badge-pane"> 
-          <div class="row">
-            <p class="col-xs-3 badge-header badge-text">Donation </p>
-          </div>
-
-          <div class="row text-center">
-            <div class="col-xs-4 text-center">
-              <div class="badge-thumbnail" style='background-image: url("/modules/users/client/img/badges/supporter.png");'>
-              </div>
-              <p class="badge-text">???</p>
-            </div>
-
-            <div class="col-xs-4">
-              <div class="badge-thumbnail" style='background-image: url("/modules/users/client/img/badges/contributor.png");'>
-              </div>
-              <p class="badge-text">???</p>
-            </div>
-
-            <div class="col-xs-4">
-              <div class="badge-thumbnail" style='background-image: url("/modules/users/client/img/badges/pillar.png");'>
-              </div>
-              <p class="badge-text">???</p>
-            </div>
-          </div>
-        </div> 
-      </div>
-
-      <div class="col-sm-6 col-md-6">
-        <div class="badge-pane"> 
-          <div class="row">
-            <p class="col-xs-3 badge-header badge-text">Store </p>
-          </div>
-
-          <div class="row text-center">
-            <div class="col-xs-4 text-center">
-              <div class="badge-thumbnail" style='background-image: url("/modules/users/client/img/badges/shopper.png");'>
-              </div>
-              <p class="badge-text">???</p>
-            </div>
-
-            <div class="col-xs-4">
-              <div class="badge-thumbnail" style='background-image: url("/modules/users/client/img/badges/promoter.png");'>
-              </div>
-              <p class="badge-text">???</p>
-            </div>
-
-            <div class="col-xs-4">
-              <div class="badge-thumbnail" style='background-image: url("/modules/users/client/img/badges/elite.png");'>
-              </div>
-              <p class="badge-text">???</p>
-            </div>
-          </div>
-        </div> 
-      </div>
-
-      <div class="col-sm-6 col-md-6">
-        <div class="badge-pane"> 
-          <div class="row">
-            <p class="col-xs-3 badge-header badge-text">Post </p>
-          </div>
-
-          <div class="row text-center">
-            <div class="col-xs-4 text-center">
-              <div class="badge-thumbnail" style='background-image: url("/modules/users/client/img/badges/participant.png");'>
-              </div>
-              <p class="badge-text">???</p>
-            </div>
-
-            <div class="col-xs-4">
-              <div class="badge-thumbnail" style='background-image: url("/modules/users/client/img/badges/chatter.png");'>
-              </div>
-              <p class="badge-text">???</p>
-            </div>
-
-            <div class="col-xs-4">
-              <div class="badge-thumbnail" style='background-image: url("/modules/users/client/img/badges/socialite.png");'>
-              </div>
-              <p class="badge-text">???</p>
-            </div>
-          </div>
-        </div> 
-      </div>
-
+      
     </div>
   </div>
 </section>

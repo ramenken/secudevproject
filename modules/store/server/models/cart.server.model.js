@@ -12,6 +12,19 @@ var mongoose = require('mongoose'),
 var CartSchema = new Schema({
   items: [
     {
+      item : {
+        type: Schema.ObjectId,
+        ref: 'Item'
+      },
+      quantity: {
+        type: Number,
+        required: 'Quantity cannot be blank'
+      },
+      totalPrice: {
+        type: Number,
+        required: 'Total Price must be computed'
+      }
+      /*
       _itemId: {
         type: Schema.Types.ObjectId
       },
@@ -35,7 +48,7 @@ var CartSchema = new Schema({
       totalPrice: {
         type: Number,
         required: 'Total Price must be computed'
-      }
+      }*/
     }
   ],
   user: {
@@ -51,10 +64,6 @@ var CartSchema = new Schema({
     default: 0
   },
   created: {
-    type: Date,
-    default: Date.now
-  },
-  updated: {
     type: Date,
     default: Date.now
   }

@@ -3,7 +3,7 @@
     <div class="search-block row">
       <div class="col-xs-12">
         <div class="input-group">
-          <input name="search" id="search" class="search-field form-control" type="text" ng-model="fields.keyword" placeholder="Search"/>
+          <input name="search" id="search" class="search-field form-control" type="text" ng-model="fields.keyword" placeholder="{Basic Search} : Enter keywords here..."/>
           <div class="input-group-btn">
             <button type="button" class="btn btn-default" ng-click="searchPosts();">Search</button>
           </div>
@@ -57,23 +57,34 @@
       No results found!
     </div>
 
-    <div class="messages-block row" ng-repeat="message in messages">
+    <div class="messages-block row" ng-repeat="message in messages" ui-sref="messages.view({messageId: message._id})" style="cursor: pointer">
       <div class="col-xs-2 col-md-1">
-        <img id="profile_picture" ui-sref="profile.view({userId: message.user._id})" ng-src="{{message.user.profileImageURL}}" alt="{{message.user.firstName}}" class="message-picture"/>
+        <div ui-sref="profile.view({userId: message.user._id})" style='background-image: url("{{message.user.profileImageURL}}");' alt="{{message.user.firstName}}" class="message-picture"> </div>
       </div>
       <div class="col-xs-10 col-md-11">
           <strong>
             <a id="firstName" href="#">
               <span ui-sref="profile.view({userId: message.user._id})" ng-bind="message.user.firstName"></span>
             </a>
+            <a href="#">
             (<span ui-sref="profile.view({userId: message.user._id})" ng-bind="message.user.username"></span>)
+            </a>
           </strong>&nbsp;on&nbsp;
           <p class="inline" ng-bind="message.created | date:'short'"></p>
-          <div class="pull-right">
-            <span type="button" class="label label-info" aria-label="Left Align" ui-sref="messages.view({messageId: message._id})" ng-show="user._id == message.user._id || authentication.user.roles[1] == 'admin'">Edit Post</span>
-          </div>
           <hr>
           <p id="content" ng-bind-html="message.content"></p>
+
+          <div ng-show="message.attachedItems.length">
+            <h5>Attached Items: </h5>
+            <ul class="list-group" style="margin-bottom: 0">
+              <li class="list-group-item" ng-repeat="item in message.attachedItems">
+                <img class="cart-thumbnail" src="{{item.item.itemImageURL}}" alt="{{item.item.name}}"/>
+                <a href="#"><span ng-bind="item.item.name" ui-sref="store.view({itemId: item.item._id})"></span></a>
+                ($<span ng-bind="item.item.price | number: 2"></span>)
+              </li>
+            </ul>
+          </div>
+
           <hr ng-show="message.editedDate != null">
           <span ng-show="message.editedDate != null">Last Edited: </span><span ng-bind="message.editedDate | date:'mediumDate'"></span>
       </div>

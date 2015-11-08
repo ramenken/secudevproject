@@ -11,7 +11,7 @@
             <p id="firstName" ng-bind="message.user.firstName"></p>
           </a>
 
-          <img id="profile_picture" ng-src="{{message.user.profileImageURL}}" alt="{{authentication.user.firstName}}" class="message-picture"/>
+          <div ui-sref="profile.view({userId: message.user._id})" style='background-image: url("{{message.user.profileImageURL}}");' alt="{{message.user.firstName}}" class="message-picture"> </div>
 
           Username:
           <a href="#">
@@ -37,6 +37,18 @@
 
             <hr>
             <p ng-bind-html="message.content" class="post-content"></p>
+
+            <div ng-show="message.attachedItems.length">
+              <h5>Attached Items: </h5>
+              <ul class="list-group" style="margin-bottom: 0">
+                <li class="list-group-item" ng-repeat="item in message.attachedItems">
+                  <img class="cart-thumbnail" src="{{item.item.itemImageURL}}" alt="{{item.item.name}}"/>
+                  <a href="#"><span ng-bind="item.item.name" ui-sref="store.view({itemId: item.item._id})"></span></a>
+                  ($<span ng-bind="item.item.price | number: 2"></span>)
+                </li>
+              </ul>
+            </div>
+                
             <hr ng-show="message.editedDate != null">
             <span ng-show="message.editedDate != null">Last Edited: </span><span ng-bind="message.editedDate | date:'medium'"></span>
         </div>

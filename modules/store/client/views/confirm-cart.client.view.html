@@ -1,0 +1,16 @@
+<section ng-controller="StoreController" ng-init="confirmCheckout()">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 callout">
+        <h4 class="callout-title">Confirm Transaction</h4>
+        <p ng-bind="message"></p>
+
+        <div style="margin-bottom: .5em">
+          <button type="submit" ui-sref="store.cart" class="btn btn-primary" ng-disabled="isDisabled">
+              <span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>&nbsp;<span ng-bind="btn_name_confirm"></span>
+          </button>
+        </div>
+      </div>  
+    </div>
+  </div>
+</section>

@@ -30,11 +30,20 @@ exports.invokeRolesPolicies = function () {
       resources: '/api/admin/signup',
       permissions: '*'
     }, {
+      resources: '/api/admin/cart/page/:pageNo',
+      permissions: '*'
+    }, {
+      resources: '/api/admin/cart/count',
+      permissions: '*'
+    }, {
       resources: '/api/admin/download/:filename',
       permissions: 'get'
     }, {
       resources: '/api/admin/loaddata',
       permissions: 'get'
+    }, {
+      resources: '/api/admin/viewcarts',
+      permissions: '*'
     }]
   }]);
 };

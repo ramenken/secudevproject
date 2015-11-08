@@ -5,21 +5,21 @@
         <div class="col-md-12">
           <div class="mini-profile">
             <div class="mini-profile-header"></div>
-              <a ui-sref="profile.view({userId: currentUser._id})">
-                <div class="mini-profile-picture" style='background-image: url("{{currentUser.profileImageURL}}");'>
+              <a ui-sref="profile.view({userId: authentication.user._id})">
+                <div class="mini-profile-picture" style='background-image: url("{{authentication.user.profileImageURL}}");'>
                 </div>
               </a>
               <h5>
                 <p class="name-wrap">
-                  <span ng-bind="currentUser.salutation"></span>
-                  <span ng-bind="currentUser.firstName"></span>
-                  <span ng-bind="currentUser.lastName"></span>
+                  <span ng-bind="authentication.user.salutation"></span>
+                  <span ng-bind="authentication.user.firstName"></span>
+                  <span ng-bind="authentication.user.lastName"></span>
                 </p>
 
-                <small>(&nbsp;<a ui-sref="profile.view({userId: currentUser._id})"><span ng-bind="currentUser.username"></span></a>&nbsp;)</small>
+                <small>(&nbsp;<a ui-sref="profile.view({userId: authentication.user._id})"><span ng-bind="authentication.user.username"></span></a>&nbsp;)</small>
 
               </h5>
-                <p class="name-wrap">{{currentUser.aboutme}}</p>
+                <p class="name-wrap">{{authentication.user.aboutme}}</p>
           </div>
         </div>
         <div class="col-md-12 aboutme-block2">
@@ -27,19 +27,19 @@
               <li class="ssa form-group">
                 <p class="va">&nbsp;
                   <span class="glyphicon glyphicon-heart" aria-hidden="true"></span>&nbsp;
-                  Gender: <span ng-bind="currentUser.gender" style="text-transform: capitalize;"></span>
+                  Gender: <span ng-bind="authentication.user.gender" style="text-transform: capitalize;"></span>
                 </p>
               </li>
               <li class="ssb form-group">
                 <p class="va">&nbsp;
                   <span class="glyphicon glyphicon-gift" aria-hidden="true"></span>&nbsp;
-                  Birthday: <span ng-bind="currentUser.birthDate | date: mm/dd/yyyy"></span>
+                  Birthday: <span ng-bind="authentication.user.birthDate | date: mm/dd/yyyy"></span>
                 </p>
               </li>
               <li class="ssb form-group">
                 <p class="va">&nbsp;
                   <span class="glyphicon glyphicon-tree-deciduous" aria-hidden="true"></span>&nbsp;
-                  Date Joined: <span ng-bind="currentUser.created | date: mm/dd/yyyy"></span>
+                  Date Joined: <span ng-bind="authentication.user.created | date: mm/dd/yyyy"></span>
                 </p>
               </li>
               <li class="ssz">
@@ -56,6 +56,8 @@
           </div>
         </div>
         <div class="row create-new-message-block">
+          <div class="col-xs-12"><h4 style="margin-top: 0">New Message</h4></div>
+          <hr>
           <div class="col-xs-12">
             <form name="messageForm" ng-submit="create(messageForm.$valid)" novalidate>
               <fieldset>
@@ -100,14 +102,28 @@
                   <a class="firstName" href="#">
                     <span ui-sref="profile.view({userId: message.user._id})" ng-bind="message.user.firstName"></span>
                   </a>
+                  <a href="#">
                   (<span ui-sref="profile.view({userId: message.user._id})" ng-bind="message.user.username"></span>)
+                  </a>
                 </strong>&nbsp;on&nbsp;
                 <p class="inline" ng-bind="message.created | date:'short'"></p>
                 <div class="pull-right">
-                  <span type="button" class="label label-info" aria-label="Left Align" ui-sref="messages.view({messageId: message._id})" ng-show="authentication.user._id == message.user._id || authentication.user.roles[1] == 'admin'">Edit Post</span>
+                  <span type="button" class="label label-info" aria-label="Left Align" ui-sref="messages.view({messageId: message._id})" ng-show="authentication.user._id == message.user._id || authentication.user.roles[1] == 'admin'" style="cursor: pointer">View & Modify</span>
                 </div>
                 <hr>
                 <p ng-bind-html="message.content" class="post-content"></p>
+
+                <div ng-show="message.attachedItems.length">
+                  <h5>Attached Items: </h5>
+                  <ul class="list-group" style="margin-bottom: 0">
+                    <li class="list-group-item" ng-repeat="item in message.attachedItems">
+                      <img class="cart-thumbnail" src="{{item.item.itemImageURL}}" alt="{{item.item.name}}"/>
+                      <a href="#"><span ng-bind="item.item.name" ui-sref="store.view({itemId: item.item._id})"></span></a>
+                      ($<span ng-bind="item.item.price | number: 2"></span>)
+                    </li>
+                  </ul>
+                </div>
+
                 <hr ng-show="message.editedDate != null">
                 <span ng-show="message.editedDate != null">Last Edited: </span><span ng-bind="message.editedDate | date:'mediumDate'"></span>
             </div>

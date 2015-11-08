@@ -9,6 +9,7 @@ var path = require('path'),
   sanitizeMongo = require('mongo-sanitize'),
   Message = mongoose.model('Message'),
   User = mongoose.model('User'),
+  Item = mongoose.model('Item'),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller'));
 
 var isAllowedToPerform = function(message, user) {
@@ -29,6 +30,7 @@ exports.basicsearch = function(req, res) {
 
   Message.find({'content': new RegExp(keyword, 'i')})
     .populate('user', 'firstName lastName username profileImageURL created')
+    .populate('attachedItems.item', 'name price itemImageURL')
     .sort('-created')
     .exec(function (err, messages) {
       if (err)
@@ -162,7 +164,8 @@ exports.advancedsearch = function(req, res) {
     path: 'user',
     match: userquery, // Perform user queries
     select: 'firstName lastName username profileImageURL created'
-  }).sort('-created')
+  }).populate('attachedItems.item', 'name price itemImageURL')
+    .sort('-created')
     .exec(function (err, messages) {
       if (err)
         return res.status(400).send({
@@ -324,7 +327,8 @@ exports.limitedList = function(req, res) {
 		page = req.params.pageNo;
 
 	Message.find().sort('-created').skip((page - 1) * 10).limit(10)
-		.populate('user', 'firstName lastName profileImageURL created username ').exec(
+		.populate('user', 'firstName lastName profileImageURL created username')
+    .populate('attachedItems.item', 'name price itemImageURL').exec(
     function (err, messages) {
 			if (err)
 				return res.status(400).send({
@@ -352,13 +356,15 @@ exports.create = function (req, res) {
   var message = new Message(req.body);
   message.user = req.user;
   message.username = req.user.username;
+  message.attachedItems = [];
 
-  //message.user._id = user._id;
-  //message.user.firstName = user.firstName;
-  //message.user.lastName = user.lastName;
-  //message.user.username = user.username;
-  //message.user.profileImageURL = user.profileImageURL;
-  //message.user.created = user.created;
+  var attachments = req.body.attachments;
+  for(var index in attachments) {
+    var newItem = new Item(attachments[index]);
+    message.attachedItems.push({'item': newItem});
+  }
+
+  console.log(message);
 
   var clean = sanitizeHtml(message.content, {
     allowedTags: [ 'b', 'i', 'u', 'em', 'strong', 'img' ],
@@ -459,7 +465,10 @@ exports.delete = function (req, res) {
  * List of Messages
  */
 exports.list = function (req, res) {
-  Message.find().sort('-created').populate('user', 'firstName username profileImageURL created').exec(function (err, messages) {
+  Message.find().sort('-created')
+  .populate('user', 'firstName username profileImageURL created')
+  .populate('attachedItems.item', 'name price itemImageURL')
+  .exec(function (err, messages) {
     if (err) {
       return res.status(400).send({
         message: errorHandler.getErrorMessage(err)
@@ -481,7 +490,10 @@ exports.messageByID = function (req, res, next, id) {
     });
   }
 
-  Message.findById(id).populate('user', 'firstName username profileImageURL created').exec(function (err, message) {
+  Message.findById(id)
+  .populate('user', 'firstName username profileImageURL created')
+  .populate('attachedItems.item', 'name price itemImageURL')
+  .exec(function (err, message) {
     if (err) {
       return next(err);
     } else if (!message) {

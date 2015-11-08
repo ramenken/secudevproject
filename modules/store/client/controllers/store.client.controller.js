@@ -1,92 +1,277 @@
 'use strict';
 
 // Store controller
-angular.module('store').controller('StoreController', ['$scope', '$stateParams', '$rootScope', '$location', '$http', 'Users', 'Authentication', 'FileUploader', 'Store', 'CartItem', '$timeout', '$state', '$window',
-  function ($scope, $stateParams, $rootScope, $location, $http, Users, Authentication, FileUploader, Store, CartItem, $timeout, $state, $window) {
+angular.module('store').controller('StoreController', ['$scope', '$stateParams', '$rootScope', '$location', '$http', 'Users', 'Authentication', 'FileUploader', 'Store', 'CartItem', '$timeout', '$interval', '$state', '$window',
+  function ($scope, $stateParams, $rootScope, $location, $http, Users, Authentication, FileUploader, Store, CartItem, $timeout, $interval, $state, $window) {
   	$scope.user = Authentication.user;
     $scope.imageURL = '/modules/store/client/img/items/default.png';
+    $scope.hasItemFocus = false;
+    $scope.item = {};
+    $scope.item.types = [{'name': 'Item'  , 'value': 'item'},
+                         {'name': 'Donation', 'value': 'donation'}];
+    $scope.item.type = $scope.item.types[0].value;
+    $scope.name = '5 Donation Pack';
+
+    $scope.isDisabled = false;
+    $scope.btn_name_checkout = "Checkout";
+
+    $scope.findDonationPacks = function() {
+      $http.get('/api/store/getpacks').success(function(response){
+        $scope.donation = {};
+        $scope.donation.packs = [];
+
+        // Push all donation packs in selection box
+        for(var i in response) {
+          $scope.donation.packs.push({'name': response[i].name, 'value': response[i]});
+        }
+
+        $scope.donation.pack = $scope.donation.packs[0].value;
+        $scope.donation.quantity = 1;
+      });
+    };
+
+    $scope.updateAmount = function(item) {
+    	if(item.quantity > 0) {
+	    	$http.post('/api/cart/updateitem', item).success(function(response){
+	    		console.log(response);
+	    		for (var i in $scope.cart.items) {
+            	if ($scope.cart.items[i].item._id === response.itemId) {
+           			$scope.cart.items[i].totalPrice = response.totalPrice;
+           			$scope.cart.totalAmount = response.totalAmount;
+            	}
+        	}
+	    	});
+	    } else {
+        var deleteItem = $window.confirm('Any value lower than 1 will be deleted continue?');
+        
+        if(deleteItem) {
+          $scope.removeCartItem(item.item._id);
+        } else {
+          for (var i in $scope.cart.items) {
+            if ($scope.cart.items[i].item._id === item.item._id) {
+              $scope.cart.items[i].quantity = 1;
+            }
+          }
+        }
+      }
+    };
+
+    $scope.hideItem = function() {
+      $http.delete('/api/store/item/' + $scope.preview._id).success(function(response){
+        $location.path('store');
+      });
+    };
 
     $scope.newCart = function() {
     	// Temporary Function
-    	$http.get('/api/store/cart/newcart');
+    	$http.get('/api/cart/newcart');
+    };
+
+    $scope.addPacktoCart = function() {
+    	console.log('Adding (' + $scope.donation.pack + ' - ' + $scope.donation.quantity + ') item to cart');
+      
+  	  var cartItem = new CartItem({
+      	item: $scope.donation.pack,
+      	quantity: $scope.donation.quantity,
+      	displayedUser: $scope.user
+    	});
+
+    	cartItem.$save(function (response) {
+      	// Clear form fields
+      	$scope.donation.quantity = 1;
+      	$scope.donation.pack = $scope.donation.packs[0].value;
+    	}, function (errorResponse) {
+      	$scope.error = errorResponse.data.message;
+    	});
     };
 
     $scope.addToCart = function() {
       console.log('Adding (' + $scope.quantity + ') items to cart.');
-	  $scope.error = null;
-
-	  // TO DO Error Checking
+	    $scope.error = null;
 
       // Create new Message object
       var cartItem = new CartItem({
-      	_itemId: $scope.preview._id,
-      	name: $scope.preview.name,
-      	itemImageURL: $scope.preview.itemImageURL,
-      	price: $scope.preview.price,
       	displayedUser: $scope.user, // Validation of user
-      	quantity: $scope.quantity
+      	quantity: $scope.quantity,
+        item: $scope.preview
       });
-
-      console.log(cartItem);
 
       // Don't Redirect after save
       cartItem.$save(function (response) {
         // Clear form fields
         $scope.quantity = 1;
         $scope.preview = '';
+        $scope.hasItemFocus = false;
       }, function (errorResponse) {
         $scope.error = errorResponse.data.message;
       });
     };
 
+    $scope.removeCartItem = function(itemId) {
+    	var cartItem = {
+    		'itemId': itemId,
+    		'displayedUser': $scope.user
+    	};
+
+    	$http.post('/api/cart/deleteitem', cartItem).success(function(response){
+    		for (var i in $scope.cart.items) {
+          if ($scope.cart.items[i].item._id === itemId) {
+         		$scope.cart.items.splice(i, 1);
+         		$scope.cart.totalAmount = response.totalAmount;
+          }
+        }
+    	});
+    };
+
     $scope.findCartItems = function() {
-    	$http.get('/api/store/cart').success(function(cart){
+    	$http.get('/api/cart').success(function(cart){
     		$scope.cart = cart;
-    		console.log($scope.cart);
     	});
     };
 
     $scope.checkout = function() {
-    	console.log("CHECKOUT");
-    	$http.get('/api/store/cart/checkout').success(function(response){
-    		$window.location = response;
-    	});
+      $scope.isDisabled = true;
+
+      $scope.btn_name_checkout = "Proceeding to Checkout...";
+      
+    	var checkout = {
+          items: $scope.cart.items,
+	      	totalAmount: $scope.cart.totalAmount,
+	      	displayedUser: $scope.user
+      	};
+
+  		$http.post('/api/cart/checkout', checkout).success(function (response) {
+        $scope.error = response.message;
+
+        if(response.issue !== undefined) {
+          $scope.error = response.issue.name + ': ' + response.issue.details[0].issue;
+          $scope.isDisabled = false;
+          $scope.btn_name_checkout = "Checkout";
+        }
+
+        if(response.continue)
+  			  $window.location = response.link;
+  		}).error(function (response){
+        $scope.error = response.message;
+
+        if(response.issue !== undefined) {
+          $scope.error = response.issue.name + ': ' + response.issue.details[0].issue;
+          $scope.isDisabled = false;
+          $scope.btn_name_checkout = "Checkout";
+        }
+      });
+
+      // 	checkout.$save(function (response) {
+      //   	// Clear cart
+      //   	console.log(response);
+    		// //$window.location = response;
+      // 	}, function (errorResponse) {
+      //   	$scope.error = errorResponse.data.message;
+      // 	});
+    };
+
+    $scope.initMessage = function() {
+      $scope.message = "Please click confirm to continue...";
     };
 
     $scope.confirmCheckout = function() {
+      $scope.btn_name_confirm = "Confirming Checkout...";
+      $scope.isDisabled = true;
     	console.log("Confirming Checkout!");
     	var params = $location.search();
-    	$http.post('api/store/cart/confirmcheckout', params);
+      params.displayedUser = $scope.user;
+
+    	$http.post('api/cart/confirmcheckout', params).success(function(response){
+        $scope.isDisabled = false;
+        $scope.btn_name_confirm = "Go Back to Cart";
+        $scope.message = response.message;
+    	}).error(function(response){
+        $scope.message = response.message;
+      });
+    };
+
+    $scope.cancelCheckout = function() {
+      console.log("Cancelled Checkout!");
+
+      var params = $location.search();
+      params.displayedUser = $scope.user;
+
+      $http.post('api/cart/cancelcheckout', params).success(function(response){
+        console.log('Successfully Cancelled!');
+      });
     };
 
   	$scope.addItem = function(isValid) {
     	$scope.error = null;
 
-      	if (!isValid) {
-	        $scope.$broadcast('show-errors-check-validity', 'itemForm');
-        	return false;
-      	}
+      if($scope.itemForm.itemName.$error.required) {
+        $scope.error = 'Item name cannot be blank. ';
+      } else if($scope.itemForm.itemPrice.$error.required) {
+        $scope.error = 'Item price cannot be blank. ';
+      } else if($scope.itemForm.itemDescription.$error.required) {
+        $scope.error = 'Item description cannot be blank. ';
+      }
 
-	    $scope.uploadProfilePicture();
+      if($scope.uploader.queue.length === 0) {
+        $scope.error = 'Item image cannot be blank.';
+      }
+
+    	if (!isValid) {
+        $scope.$broadcast('show-errors-check-validity', 'itemForm');
+      	return false;
+    	}
+
+	    $scope.addImage();
+      if($scope.uploader.queue.length !== 0) {
+        $timeout(function(){
+          $location.path('store');
+        }, 3000);
+      }
     };
 
     // Find a list of Items
-    $scope.findItems = function () {
-      	$scope.items = $scope.loadItems();
+    $scope.find = function () {
+      $scope.items = $scope.loadItems();
+
+      // Cart item count
+      $http.get('/api/cart/countitems').success(function(response) {
+	      $scope.totalCartItems = response.totalCartItems;
+	      //console.log($scope.totalCartItems);
+	    });
+
+	    // Store item count
+	    $http.get('/api/store/count').success(function(response) {
+	      $scope.totalShopItems = response.count;
+	    });
+    };
+
+    // Find existing Item
+    $scope.findOne = function () {
+      // $scope.preview = Store.get({
+      //  itemId: $stateParams.itemId
+      // });
+
+      $http.get('/api/store/item/' + $stateParams.itemId).success(function(response){
+        $scope.preview = response;
+        console.log($scope.preview);
+      }).error(function(response){
+          $scope.error = "Item not found. Trying to access deleted or hidden item";
+      });
+    };
+
+    var getImageName = function () {
+      console.log($scope.preview);
     };
 
     // Find existing item
     $scope.displayItem = function (item) {
 	  	$scope.preview = item;
+	  	$scope.hasItemFocus = true;
 	  	$scope.quantity = 1;
     };
 
     $scope.currentPage = 1;
     $scope.maxSize = 5;
-
-    $http.get('/api/store/count').success(function(response) {
-      $scope.totalShopItems = response.count;
-    });
 
     $scope.setPage = function(value) {
     	$scope.currentPage = value;
@@ -120,7 +305,9 @@ angular.module('store').controller('StoreController', ['$scope', '$stateParams',
       	item.formData.push({
       		'name': $scope.item.name, 
       		'description': $scope.item.description, 
-      		'price': $scope.item.price
+      		'price': $scope.item.price,
+          'type': $scope.item.type,
+          'displayedUserId': $scope.user._id
   		});
     };
 
@@ -142,6 +329,7 @@ angular.module('store').controller('StoreController', ['$scope', '$stateParams',
     $scope.uploader.onSuccessItem = function (fileItem, response, status, headers) {
       // Show success message
       $scope.success = true;
+      $scope.uploader.clearQueue();
 
       // Clear upload buttons
       $scope.cancelUpload();
@@ -151,13 +339,13 @@ angular.module('store').controller('StoreController', ['$scope', '$stateParams',
     $scope.uploader.onErrorItem = function (fileItem, response, status, headers) {
       // Clear upload buttons
       $scope.cancelUpload();
-
+      $scope.uploader.clearQueue();
       // Show error message
       $scope.error = response.message;
     };
 
     // Change user profile picture
-    $scope.uploadProfilePicture = function () {
+    $scope.addImage = function () {
       // Clear messages
       $scope.success = $scope.error = null;
 
@@ -168,7 +356,6 @@ angular.module('store').controller('StoreController', ['$scope', '$stateParams',
     // Cancel the upload process
     $scope.cancelUpload = function () {
       $scope.uploader.clearQueue();
-      $scope.imageURL = '/modules/store/client/img/items/default.png';
     };
   }
 ]);

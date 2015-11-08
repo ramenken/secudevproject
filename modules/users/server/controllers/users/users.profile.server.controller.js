@@ -9,36 +9,174 @@ var _ = require('lodash'),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   mongoose = require('mongoose'),
   sanitizeHtml = require('sanitize-html'),
-  User = mongoose.model('User');
+  User = mongoose.model('User'),
+  Item = mongoose.model('Item'),
+  Message = mongoose.model('Message'),
+  Cart = mongoose.model('Cart');
 
-  var isValidDate = function(dateObject) {
-    var newDate = (dateObject.getMonth() + 1) + '/' + dateObject.getDate() + '/' + dateObject.getFullYear();
-    console.log('Testing date : ' + newDate);
-    var matches = /^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/.exec(newDate);
-    if (matches === null) {
-      console.log('Printing hello from matches');
-      return false;
+var isValidDate = function(dateObject) {
+  var newDate = (dateObject.getMonth() + 1) + '/' + dateObject.getDate() + '/' + dateObject.getFullYear();
+  console.log('Testing date : ' + newDate);
+  var matches = /^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/.exec(newDate);
+  if (matches === null) {
+    console.log('Printing hello from matches');
+    return false;
+  }
+  var d = parseInt(matches[2]);
+  var m = matches[1] - 1;
+  var y = parseInt(matches[3]);
+  var composedDate = new Date(y, m, d);
+
+  return composedDate.getDate() === d && composedDate.getMonth() === m & composedDate.getFullYear() === y;
+};
+
+var calculateAge = function(year) {
+  var now = new Date();
+  var current_year = now.getFullYear();
+  console.log(current_year + ' - ' + year);
+  return current_year - year;
+};
+
+var computeDonation = function(userId, amount, callback) {
+  var promise = User.findOne({'_id': userId}).exec(); //Look for the current active cart (Not paid)
+
+  promise.then(function(user){
+    var total = amount;
+
+    if(user) {
+      total = total + user.contribution;
+      total = parseFloat(Math.round(total * 100) / 100).toFixed(2);
+      callback(total);
     }
-    var d = parseInt(matches[2]);
-    var m = matches[1] - 1;
-    var y = parseInt(matches[3]);
-    var composedDate = new Date(y, m, d);
-
-    return composedDate.getDate() === d && composedDate.getMonth() === m & composedDate.getFullYear() === y;
-  };
-
-  var calculateAge = function(year) {
-    var now = new Date();
-    var current_year = now.getFullYear();
-    console.log(current_year + ' - ' + year);
-    return current_year - year;
-  };
+  });
+};
 
 /**
  * Show the current user
  */
 exports.read = function (req, res) {
   res.json(req.model);
+};
+
+var searchCandidates = function(userId, callback) {
+  var promise = Message.find({'user': userId}).exec();
+
+  promise.then(function(messages){
+    User.findOne({'_id': userId})
+    .exec(function(err, user){
+      if (err) {
+        return false;
+      } else {
+        var postCount, purchaseCount, donationCount;
+
+        purchaseCount = donationCount = 0;
+        if(user) {
+          postCount = messages.length;
+          donationCount = user.contribution;
+          purchaseCount = user.totalpurchase;
+        }
+        callback(postCount, purchaseCount, donationCount);
+      } 
+    });
+  });
+  
+};
+
+exports.updateBadges = function (req, res) {
+
+  console.log('Crafting your lovely badges...');
+  console.log(req.params);
+
+  var badges = [
+    {'name': 'Participant Badge', 'badgeImageURL': 'modules/users/client/img/badges/participant.png', 'type': 'post', 'description': 'Awarded to those who reach 3 posts'},
+    {'name': 'Chatter Badge', 'badgeImageURL': 'modules/users/client/img/badges/chatter.png', 'type': 'post', 'description': 'Awarded to those who reach 5 posts'},
+    {'name': 'Socialite Badge', 'badgeImageURL': 'modules/users/client/img/badges/socialite.png', 'type': 'post', 'description': 'Awarded to those who reach 10 posts'},
+    {'name': 'Supporter Badge', 'badgeImageURL': 'modules/users/client/img/badges/supporter.png', 'type': 'donation', 'description': 'Contributed at least $5 of donation'},
+    {'name': 'Contributor Badge', 'badgeImageURL': 'modules/users/client/img/badges/contributor.png', 'type': 'donation', 'description': 'Contributed at least $20 of donation'},
+    {'name': 'Pillar Badge', 'badgeImageURL': 'modules/users/client/img/badges/pillar.png', 'type': 'donation', 'description': 'Contributed at least $100 of donation'},
+    {'name': 'Shopper Badge', 'badgeImageURL': 'modules/users/client/img/badges/shopper.png', 'type': 'store', 'description': 'Reached at least $5 of purchase'},
+    {'name': 'Promoter Badge', 'badgeImageURL': 'modules/users/client/img/badges/promoter.png', 'type': 'store', 'description': 'Reached at least $20 of purchase'},
+    {'name': 'Elite Badge', 'badgeImageURL': 'modules/users/client/img/badges/elite.png', 'type': 'store', 'description': 'Reached at least $100 of purchase'},
+    {'name': 'Explorer Badge', 'badgeImageURL': 'modules/users/client/img/badges/explorer.png', 'type': 'collector', 'description': 'Collected Participant, Support, and Shopper badges'},
+    {'name': 'Backer Badge', 'badgeImageURL': 'modules/users/client/img/badges/backer.png', 'type': 'collector', 'description': 'Collected Contributor and Promoter badges'},
+    {'name': 'Evangelist Badge', 'badgeImageURL': 'modules/users/client/img/badges/evangelist.png', 'type': 'collector', 'description': 'Collected Socialite, Pillar, and Elite badges'}
+  ];
+
+  var postTotal, purchaseTotal, donationTotal;
+  postTotal = purchaseTotal = donationTotal = 0;
+
+  var myBadges = [];
+
+  searchCandidates(req.params.userId, function(postCount, purchaseCount, donationCount){
+    var explorer = [0,0,0];
+    var backer = [0,0,0];
+    var evangelist = [0,0,0];
+
+    if(postCount >= 3) {
+      myBadges.push(badges[0]);
+      explorer[0] = 1;
+
+      if(postCount >= 5) {
+        myBadges.push(badges[1]);
+        backer[0] = 1;
+
+        if(postCount >= 10) {
+          myBadges.push(badges[2]);
+          evangelist[0] = 1;
+        }
+      }
+    }
+
+    if(donationCount >= 3) {
+      myBadges.push(badges[3]);
+      explorer[1] = 1;
+
+      if(donationCount >= 20) {
+        myBadges.push(badges[4]);
+        backer[1] = 1;
+
+        if(donationCount >= 100) {
+          myBadges.push(badges[5]);
+          evangelist[1] = 1;
+        }
+      }
+    }
+
+    if(purchaseCount >= 5) {
+      myBadges.push(badges[6]);
+      explorer[2] = 1;
+
+      if(purchaseCount >= 20) {
+        myBadges.push(badges[7]);
+        backer[2] = 1;
+
+        if(purchaseCount >= 100) {
+          myBadges.push(badges[8]);
+          evangelist[2] = 1;
+        }
+      }
+    }
+
+    if(explorer[0] + explorer[1] + explorer[2] === 3)
+      myBadges.push(badges[9]);
+
+    if(backer[1] + backer[2] === 2)
+      myBadges.push(badges[10]);
+
+    if(evangelist[0] + evangelist[1] + evangelist[2] === 3)
+      myBadges.push(badges[11]);
+
+    console.log('Post Count: ' + postCount);
+    console.log('Purchase Count: ' + purchaseCount);
+    console.log('Donation Count: ' + donationCount);  
+
+    console.log('My ' + myBadges.length + ' Badges are : ');
+    for(var i in myBadges) {
+      console.log(myBadges[i]);
+    }
+
+    res.status(200).send({'badges': myBadges, 'donationCount': donationCount, 'postCount': postCount, 'purchaseCount': purchaseCount});
+  });
 };
 
 /**

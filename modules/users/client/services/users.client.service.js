@@ -40,3 +40,9 @@ angular.module('users.admin').factory('Backup', ['$resource',
     return $resource('api/admin/backup');
   }
 ]);
+
+angular.module('users.admin').factory('Carts', ['$resource',
+  function ($resource) {
+    return $resource('api/admin/viewcarts');
+  }
+]);
