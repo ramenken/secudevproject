@@ -251,8 +251,10 @@ exports.checkout = function(req, res) {
   };
 
   paypalPayment.transactions[0].amount.total = 50;
-  paypalPayment.redirect_urls.return_url = 'http://localhost:3000/store/cart';
-  paypalPayment.redirect_urls.cancel_url = 'http://localhost:3000/store/cart';
+  // paypalPayment.redirect_urls.return_url = 'http://localhost:3000/store/cart';
+  // paypalPayment.redirect_urls.cancel_url = 'http://localhost:3000/store/cart';
+  paypalPayment.redirect_urls.return_url = 'https://107.170.72.7/store/cart';
+  paypalPayment.redirect_urls.cancel_url = 'http://107.170.72.7/store/cart';
   paypalPayment.transactions[0].description = 'Total Price: PHP ' + 50;
   paypal.payment.create(paypalPayment, {}, function (err, response) {
    if (err) {
