@@ -34,6 +34,14 @@ var TransactionSchema = new Schema({
     type: String,
     default: '0'
   },
+  paymentId: {
+    type: String,
+    required: true
+  },
+  tokenId: {
+    type: String,
+    required: true
+  },
   totalAmount: {
     type: Number,
     default: 0

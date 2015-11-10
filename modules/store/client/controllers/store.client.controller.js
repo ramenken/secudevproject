@@ -192,12 +192,14 @@ angular.module('store').controller('StoreController', ['$scope', '$stateParams',
 
     $scope.cancelCheckout = function() {
       console.log("Cancelled Checkout!");
+      $scope.error = null;
 
       var params = $location.search();
       params.displayedUser = $scope.user;
 
       $http.post('api/cart/cancelcheckout', params).success(function(response){
         console.log('Successfully Cancelled!');
+        $scope.error = response.message;
       });
     };
 

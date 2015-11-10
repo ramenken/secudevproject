@@ -12,6 +12,7 @@ var path = require('path'),
   Cart = mongoose.model('Cart'),
   Transaction = mongoose.model('Transaction'),
   paypal = require('paypal-rest-sdk'),
+  ipnVerify = require('paypal-ipn'),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller'));
 
 
@@ -185,29 +186,40 @@ exports.ipnHandler = function(req, res) {
   console.log('Verifying Checkout Transaction');
   console.log(req.body);
 
-  if(req.body.item_number === 'secudevdonation5' || req.body.item_number === 'secudevdonation10' || 
-    req.body.item_number === 'secudevdonation20') {
+  ipnVerify.verify(req.body, {'allow_sandbox': true}, function(err, msg) {
+    if(err)
+      return res.send({'message': err});
+
+    console.log('IPN is valid!');
+
+    if(req.body.item_number === 'secudevdonation5' || req.body.item_number === 'secudevdonation10' || 
+      req.body.item_number === 'secudevdonation20') {
+        if(req.body.payment_status === 'Completed') {
+          console.log('You donated $' + req.body.payment_gross);
+          
+          // Add to total donations
+          computeDonation(req.body.custom, req.body.payment_gross, function(amount) {
+            User.update({'_id': req.body.custom}, 
+              { $set: 
+                { 
+                  'contribution': amount
+                }
+              }).exec(function(err, user){
+                  if (err)
+                    return res.status(400).send({message: errorHandler.getErrorMessage(err)});
+                  else
+                    res.json(user);
+                });
+          });
+        }
+    } else {
+
       if(req.body.payment_status === 'Completed') {
-        console.log('You donated $' + req.body.payment_gross);
-        
-        // Add to total donations
-        computeDonation(req.body.custom, req.body.payment_gross, function(amount) {
-          User.update({'_id': req.body.custom}, 
-            { $set: 
-              { 
-                'contribution': amount
-              }
-            }).exec(function(err, user){
-                if (err)
-                  return res.status(400).send({message: errorHandler.getErrorMessage(err)});
-                else
-                  res.json(user);
-              });
-        });
+        //Save Checkout!
       }
-  } else {
-    res.status(200).send({'message': 'I received your Checkout IPN!'});
-  }
+      res.status(200).send({'message': 'I received your Checkout IPN!'});
+    }
+  });
 };
 
 /**
@@ -436,8 +448,18 @@ exports.checkout = function(req, res) {
   delete req.body.displayedUser;
 
   if(req.body.totalAmount <= 0) {
-    return res.status(400).send({'message': 'Cannot checkout when cart is empty!', 'continue': false});
+    return res.status(400).send({'message': 'Cannot checkout when cart is empty! - 1', 'continue': false});
   }
+
+  Cart.findOne({'user': req.user._id, $or: [{'status': '0'},{'status': '2'}]}) //Look for the current active cart (Not paid)
+    .exec(function (err, cart) {
+      if (err)
+        return res.send({'message': 'Error when checking for items in the server', 'continue': false});
+      else {
+        console.log(cart.items.length);
+        if(!cart.items.length)
+          return res.status(400).send({'message': 'Cannot checkout when cart is empty! - 2', 'continue': false});
+        else {
 
   paypal.configure({
      'host': 'api.sandbox.paypal.com',
@@ -488,7 +510,12 @@ exports.checkout = function(req, res) {
                 'issue': err.response, 'continue': false});
     }
     else if (response) {
-      //console.log(response);
+      console.log('THIS IS A RESPONSE=========');
+      console.log(typeof response.id + ' ' + response.id);
+      var str = response.links[1].href;
+      var token = str.substr(str.indexOf("token=") + 6);
+      console.log(token);
+      console.log('THIS IS A RESPONSE=========');
       var link = response.links;
 
       Cart.findOne({'user': req.user._id, $or:[{'status': 0},{'status': 2}]}).exec(function(err, cart) {
@@ -497,6 +524,8 @@ exports.checkout = function(req, res) {
         transaction.user = cart.user;
         transaction.status = 0;
         transaction.totalAmount = cart.totalAmount;
+        transaction.paymentId = response.id;
+        transaction.tokenId = token;
         transaction.created = cart.created;
         transaction.updated = new Date();
 
@@ -515,6 +544,9 @@ exports.checkout = function(req, res) {
       }
     }
   });
+        } // else
+      }
+    });
 };
 
 exports.cancelCheckout = function(req, res) {
@@ -534,19 +566,32 @@ exports.cancelCheckout = function(req, res) {
         }
       });
 
-      var transaction = Transaction.findOne({'user': req.user._id}).sort({'updated': -1}).limit(1);
-      transaction.then(function(response){
-        Transaction.update({'_id': response._id}, {
-            $set: { 
-              'status': 2
-            }
-          }).exec(function (err, tr) {
-            if (err) {
-              return res.status(400).send({message: errorHandler.getErrorMessage(err)});
-            } else {
-              res.json(tr);
-            }
-          });
+      // Verify if transaction is cancelled
+      Transaction.findOne({'user': req.user._id, 'tokenId': req.body.token, 'status': 2}).exec(function(err, response){
+        if (err) {
+          return res.status(400).send({message: errorHandler.getErrorMessage(err)});
+        } else {
+          console.log(response);
+          if(response)
+            return res.send({'message': 'This transaction (' + response.tokenId + ') was already cancelled.'});
+          else {
+            Transaction.update({'user': req.user._id, 'tokenId': req.body.token}, {
+              $set: { 
+                'status': 2
+              }
+            }).exec(function (err, tr) {
+              if (err) {
+                console.log('There is no existing token like that!');
+                return res.status(400).send({message: errorHandler.getErrorMessage(err)});
+              } else {
+                if(tr.nModified)
+                  return res.send({'message': 'Cancelled Transaction.'});
+                else
+                  return res.send({'message': 'Nothing has been cancelled.'});
+              }
+            });
+          }
+        }
       });
   }
 };
@@ -563,10 +608,54 @@ exports.confirmCheckout = function(req, res) {
   };
 
   paypal.payment.execute(req.body.paymentId, payer, {}, function (err, response) {
-    if (err) 
-      return res.status(400).send({ message: 'An error occured while executing your transaction' });
+    if (err) {
+      console.log('Error in executing your payment!');
+      return res.status(400).send({ 'message': err.response.message });
+    }
     else {
       console.log(response);
+
+      /*var transaction = Transaction.findOne({'user': req.user._id}).sort({'updated': -1}).limit(1);
+      transaction.then(function(response){
+        Transaction.update({'_id': response._id}, {
+            $set: { 
+              'status': 1
+            }
+          }).exec(function (err, tr) {
+            if (err) {
+              return res.status(400).send({message: errorHandler.getErrorMessage(err)});
+            }
+          });
+      });*/
+
+      // Verify if transaction is cancelled
+      Transaction.findOne({'user': req.user._id, 'tokenId': req.body.token, 'status': 1}).exec(function(err, response){
+        if (err) {
+          return res.status(400).send({message: errorHandler.getErrorMessage(err)});
+        } else {
+          console.log(response);
+          if(response)
+            return res.send({'message': 'This transaction (' + response.tokenId + ') was already paid.'});
+          else {
+            console.log('updating transaction');
+            Transaction.update({'user': req.user._id, 'tokenId': req.body.token}, {
+              $set: { 
+                'status': 1
+              }
+            }).exec(function (err, tr) {
+              if (err) {
+                console.log('There is no existing token like that!');
+                return res.status(400).send({message: errorHandler.getErrorMessage(err)});
+              } else {
+                if(tr.nModified)
+                  console.log('Paid transaction!');
+                else
+                  return res.send({'message': 'The transaction is already paid.'});
+              }
+            });
+          }
+        }
+      });
 
       // Add all purchase / donation packs to total contribution / purchase of User
       var donationPackSum = 0;
@@ -617,19 +706,6 @@ exports.confirmCheckout = function(req, res) {
             return res.status(400).send({message: errorHandler.getErrorMessage(err)});
           }
         });
-
-      var transaction = Transaction.findOne({'user': req.user._id}).sort({'updated': -1}).limit(1);
-      transaction.then(function(response){
-        Transaction.update({'_id': response._id}, {
-            $set: { 
-              'status': 1
-            }
-          }).exec(function (err, tr) {
-            if (err) {
-              return res.status(400).send({message: errorHandler.getErrorMessage(err)});
-            }
-          });
-      });
 
       var cart = new Cart();
       cart.user = req.user;
